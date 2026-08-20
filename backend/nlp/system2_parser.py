@@ -170,39 +170,39 @@ def llm_parse_command(transcript: str, language: str = "en") -> Dict[str, Any]:
 
     # 1. Primary Path: Call Groq API if key is present
     if groq_key and groq_key.strip():
-        try:
-            url = "https://api.groq.com/openai/v1/chat/completions"
-            headers = {
-                "Authorization": f"Bearer {groq_key.strip()}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": "llama-3.3-70b-versatile",
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt}
-                ],
-                "temperature": 0.1,
-                "response_format": {"type": "json_object"}
-            }
-            # Strict 8-second timeout for fast LLM inference
-            with httpx.Client(timeout=8.0) as client:
-                res = client.post(url, headers=headers, json=payload)
-                if res.status_code == 200:
-                    content = res.json()["choices"][0]["message"]["content"]
-                    parsed = json.loads(content)
-                    return _format_system2_output(parsed)
-                elif res.status_code == 400 or res.status_code == 404:
-                    # Try fallback model on Groq
-                    payload["model"] = "llama-3.1-8b-instant"
-                    res2 = client.post(url, headers=headers, json=payload)
-                    if res2.status_code == 200:
-                        content2 = res2.json()["choices"][0]["message"]["content"]
-                        parsed2 = json.loads(content2)
-                        return _format_system2_output(parsed2)
-        except Exception:
-            # Fallback gracefully if network drops or API error occurs
-            pass
+        # List of candidate models available on Groq's high-speed infrastructure
+        candidate_models = [
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
+            "qwen/qwen3.6-27b",
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant"
+        ]
+
+        for model_name in candidate_models:
+            try:
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {groq_key.strip()}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": model_name,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "temperature": 0.1,
+                    "response_format": {"type": "json_object"}
+                }
+                with httpx.Client(timeout=8.0) as client:
+                    res = client.post(url, headers=headers, json=payload)
+                    if res.status_code == 200:
+                        content = res.json()["choices"][0]["message"]["content"]
+                        parsed = json.loads(content)
+                        return _format_system2_output(parsed)
+            except Exception:
+                continue
 
     # 2. Graceful offline fallback if Groq API key is unset or unreachable
     return _offline_fallback_system2(transcript, language)
