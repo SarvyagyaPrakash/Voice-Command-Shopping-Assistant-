@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { ShoppingCart, HelpCircle, CheckCircle2, AlertTriangle, Info, RefreshCw, Cpu } from 'lucide-react';
+import { HelpCircle, CheckCircle2, AlertTriangle, Info, RefreshCw, Cpu } from 'lucide-react';
 import { useSpeechRecognition, type SupportedLanguage } from './hooks/useSpeechRecognition';
 import { useShoppingList } from './hooks/useShoppingList';
 import { VoiceButton } from './components/VoiceButton';
@@ -124,8 +124,12 @@ export const App: React.FC = () => {
         {/* Header */}
         <header className="px-3 flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-palette-deep to-palette-primary text-white flex items-center justify-center shadow-glow-primary transform hover:rotate-3 transition-transform">
-              <ShoppingCart className="w-5 h-5 drop-shadow-sm" />
+            <div className="w-12 h-12 rounded-2xl bg-palette-deep border border-palette-soft/40 p-1 flex items-center justify-center shadow-glow-primary overflow-hidden group">
+              <img
+                src="/logo.png"
+                alt="Voice Shopping Assistant Logo"
+                className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform"
+              />
             </div>
             <div>
               <h1 className="text-base font-extrabold text-palette-deep tracking-tight leading-tight">
