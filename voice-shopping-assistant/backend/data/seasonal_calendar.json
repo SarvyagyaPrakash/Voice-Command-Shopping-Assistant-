@@ -1,0 +1,62 @@
+{
+  "1": [
+    {"name": "oranges", "reason": "Peak citrus season - juicy and high in Vitamin C", "category": "produce"},
+    {"name": "kale", "reason": "Frost-sweetened winter greens", "category": "produce"},
+    {"name": "grapefruit", "reason": "Fresh winter harvest with rich antioxidants", "category": "produce"}
+  ],
+  "2": [
+    {"name": "lemons", "reason": "Fresh winter lemon harvest", "category": "produce"},
+    {"name": "brussels sprouts", "reason": "Prime cold-weather roasting vegetable", "category": "produce"},
+    {"name": "sweet potatoes", "reason": "Hearty winter root crop on seasonal sale", "category": "produce"}
+  ],
+  "3": [
+    {"name": "strawberries", "reason": "Early spring crop arriving fresh", "category": "produce"},
+    {"name": "artichokes", "reason": "Peak spring harvest for tender hearts", "category": "produce"},
+    {"name": "asparagus", "reason": "Crisp early spring shoots", "category": "produce"}
+  ],
+  "4": [
+    {"name": "asparagus", "reason": "Prime spring season - sweet and tender", "category": "produce"},
+    {"name": "radishes", "reason": "Fresh peppery spring radishes", "category": "produce"},
+    {"name": "spring peas", "reason": "Sweet tender green peas", "category": "produce"}
+  ],
+  "5": [
+    {"name": "mangoes", "reason": "Sweet summer mangoes arriving at peak flavor", "category": "produce"},
+    {"name": "cherries", "reason": "Early summer sweet cherries", "category": "produce"},
+    {"name": "zucchini", "reason": "Tender spring squash harvest", "category": "produce"}
+  ],
+  "6": [
+    {"name": "watermelon", "reason": "Refreshing summer hydration classic", "category": "produce"},
+    {"name": "blueberries", "reason": "Summer berry peak - rich in antioxidants", "category": "produce"},
+    {"name": "peaches", "reason": "Fragrant and sweet stone fruit", "category": "produce"}
+  ],
+  "7": [
+    {"name": "sweet corn", "reason": "Sweet summer corn on the cob", "category": "produce"},
+    {"name": "tomatoes", "reason": "Sun-ripened garden fresh tomatoes", "category": "produce"},
+    {"name": "peaches", "reason": "Peak juicy summer peach harvest", "category": "produce"}
+  ],
+  "8": [
+    {"name": "figs", "reason": "Late summer honeyed figs in season", "category": "produce"},
+    {"name": "blackberries", "reason": "Sweet wild blackberry harvest", "category": "produce"},
+    {"name": "bell peppers", "reason": "Crisp colorful peppers in abundance", "category": "produce"}
+  ],
+  "9": [
+    {"name": "apples", "reason": "Fresh crisp fall apple harvest", "category": "produce"},
+    {"name": "grapes", "reason": "Peak vineyard harvest season", "category": "produce"},
+    {"name": "butternut squash", "reason": "Early autumn hearty squash", "category": "produce"}
+  ],
+  "10": [
+    {"name": "pumpkins", "reason": "Fall baking and soup season staple", "category": "produce"},
+    {"name": "pears", "reason": "Sweet and juicy autumnal pears", "category": "produce"},
+    {"name": "cranberries", "reason": "Tart fresh harvest for sauces & baking", "category": "produce"}
+  ],
+  "11": [
+    {"name": "pomegranates", "reason": "Jeweled autumn superfood in peak season", "category": "produce"},
+    {"name": "parsnips", "reason": "Sweet earthy root vegetables", "category": "produce"},
+    {"name": "pecans", "reason": "Freshly harvested nuts for holiday season", "category": "snacks"}
+  ],
+  "12": [
+    {"name": "clementines", "reason": "Sweet holiday easy-peel citrus", "category": "produce"},
+    {"name": "winter squash", "reason": "Comforting cold-season soups & roasts", "category": "produce"},
+    {"name": "chestnuts", "reason": "Roasting holiday favorite", "category": "snacks"}
+  ]
+}

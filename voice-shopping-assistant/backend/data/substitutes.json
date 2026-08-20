@@ -1,0 +1,58 @@
+{
+  "milk": [
+    {"name": "oat milk", "reason": "Plant-based creamy alternative", "category": "dairy"},
+    {"name": "almond milk", "reason": "Low-calorie nutty alternative", "category": "dairy"},
+    {"name": "soy milk", "reason": "High-protein dairy alternative", "category": "dairy"}
+  ],
+  "whole milk": [
+    {"name": "oat milk", "reason": "Creamy plant-based substitute", "category": "dairy"},
+    {"name": "2% reduced fat milk", "reason": "Lighter dairy choice", "category": "dairy"}
+  ],
+  "butter": [
+    {"name": "olive oil", "reason": "Healthy cooking fat substitute", "category": "pantry"},
+    {"name": "ghee", "reason": "High smoke point clarified butter", "category": "dairy"},
+    {"name": "plant butter", "reason": "Vegan alternative for baking", "category": "dairy"}
+  ],
+  "eggs": [
+    {"name": "flaxseed meal", "reason": "Vegan egg substitute for baking", "category": "pantry"},
+    {"name": "silken tofu", "reason": "Great for scrambles and moisture", "category": "meat"},
+    {"name": "applesauce", "reason": "Moisture replacer in muffins & cakes", "category": "produce"}
+  ],
+  "sugar": [
+    {"name": "honey", "reason": "Natural unrefined sweetener", "category": "pantry"},
+    {"name": "maple syrup", "reason": "Flavorful liquid sweetener", "category": "pantry"},
+    {"name": "stevia", "reason": "Zero-calorie plant sweetener", "category": "pantry"}
+  ],
+  "white rice": [
+    {"name": "brown rice", "reason": "Whole grain higher fiber option", "category": "pantry"},
+    {"name": "quinoa", "reason": "Complete protein grain substitute", "category": "pantry"},
+    {"name": "cauliflower rice", "reason": "Low-carb fresh vegetable substitute", "category": "produce"}
+  ],
+  "rice": [
+    {"name": "quinoa", "reason": "Complete protein grain substitute", "category": "pantry"},
+    {"name": "couscous", "reason": "Quick cooking wheat grain", "category": "pantry"}
+  ],
+  "pasta": [
+    {"name": "chickpea pasta", "reason": "High protein & gluten-free", "category": "pantry"},
+    {"name": "zucchini noodles", "reason": "Fresh low-carb vegetable substitute", "category": "produce"},
+    {"name": "whole wheat spaghetti", "reason": "Higher fiber alternative", "category": "pantry"}
+  ],
+  "coffee": [
+    {"name": "matcha green tea", "reason": "Clean, jitter-free sustained energy", "category": "beverages"},
+    {"name": "chicory root brew", "reason": "Caffeine-free rich earthy flavor", "category": "beverages"}
+  ],
+  "chicken": [
+    {"name": "firm tofu", "reason": "Versatile plant-based protein", "category": "meat"},
+    {"name": "turkey breast", "reason": "Lean poultry alternative", "category": "meat"},
+    {"name": "portobello mushrooms", "reason": "Savory meaty texture for stir-fries", "category": "produce"}
+  ],
+  "beef": [
+    {"name": "ground turkey", "reason": "Leaner protein substitute", "category": "meat"},
+    {"name": "lentils", "reason": "Hearty fiber-rich plant substitute", "category": "pantry"},
+    {"name": "plant-based beyond patty", "reason": "Texture-matching alternative", "category": "meat"}
+  ],
+  "cheese": [
+    {"name": "nutritional yeast", "reason": "Cheesy nutty seasoning for toppings", "category": "pantry"},
+    {"name": "vegan cashew cheese", "reason": "Dairy-free artisanal spread", "category": "dairy"}
+  ]
+}
