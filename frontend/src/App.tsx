@@ -19,6 +19,7 @@ export const App: React.FC = () => {
     toast,
     setToast,
     executeCommand,
+    executeAudioCommand,
     addItem,
     changeQuantity,
     changeCategory,
@@ -31,20 +32,28 @@ export const App: React.FC = () => {
   const [externalSearchQuery, setExternalSearchQuery] = useState<string>('');
   const [showArchExplainer, setShowArchExplainer] = useState<boolean>(false);
 
-  // Handle final speech transcript from Web Speech API hook
-  const handleFinalTranscript = useCallback(
-    async (text: string, lang: SupportedLanguage) => {
+  // Handle final speech result (transcript + audio blob)
+  const handleFinalSpeechResult = useCallback(
+    async (text: string, audioBlob: Blob | null, lang: SupportedLanguage) => {
       const languageCode = lang.split('-')[0]; // "en", "hi", "es"
       try {
-        const result = await executeCommand(text, languageCode);
+        let result = null;
+
+        // If non-English OR if text transcript is empty but audio blob exists -> send to Whisper Large V3
+        if ((lang !== 'en-US' || !text.trim()) && audioBlob && audioBlob.size > 0) {
+          result = await executeAudioCommand(audioBlob, languageCode);
+        } else if (text.trim()) {
+          result = await executeCommand(text, languageCode, 'web_speech');
+        }
+
         if (result && result.intent === 'SEARCH') {
           setExternalSearchQuery(result.brand || result.items[0]?.name || text);
         }
       } catch {
-        // Error already handled in useShoppingList toast
+        // Handled in useShoppingList toast
       }
     },
-    [executeCommand]
+    [executeCommand, executeAudioCommand]
   );
 
   const {
@@ -56,7 +65,7 @@ export const App: React.FC = () => {
     setLanguage,
     startListening,
     stopListening,
-  } = useSpeechRecognition(handleFinalTranscript);
+  } = useSpeechRecognition(handleFinalSpeechResult);
 
   const handleManualCommand = async (text: string, lang: SupportedLanguage) => {
     const languageCode = lang.split('-')[0];

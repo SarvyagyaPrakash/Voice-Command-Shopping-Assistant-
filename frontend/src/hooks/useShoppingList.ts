@@ -55,11 +55,11 @@ export function useShoppingList() {
 
   // Execute Voice or Text Command
   const executeCommand = useCallback(
-    async (transcript: string, language: string = 'en') => {
+    async (transcript: string, language: string = 'en', transcriptionSource: string = 'web_speech') => {
       if (!transcript.trim()) return;
       setIsParsing(true);
       try {
-        const result = await api.parseCommand(transcript, language);
+        const result = await api.parseCommand(transcript, language, transcriptionSource);
         setLastCommand(result);
 
         if (result.action_summary) {
@@ -71,6 +71,30 @@ export function useShoppingList() {
         return result;
       } catch (err: any) {
         showToast(err.message || 'Failed to process command', 'error');
+        throw err;
+      } finally {
+        setIsParsing(false);
+      }
+    },
+    [loadData, showToast]
+  );
+
+  // Execute Raw Audio Command via Hugging Face Whisper
+  const executeAudioCommand = useCallback(
+    async (audioBlob: Blob, language: string = 'en') => {
+      setIsParsing(true);
+      try {
+        const result = await api.transcribeAudio(audioBlob, language);
+        setLastCommand(result);
+
+        if (result.action_summary) {
+          showToast(result.action_summary, 'success');
+        }
+
+        await loadData();
+        return result;
+      } catch (err: any) {
+        showToast(err.message || 'Failed to process audio command', 'error');
         throw err;
       } finally {
         setIsParsing(false);
@@ -197,6 +221,7 @@ export function useShoppingList() {
     toast,
     setToast,
     executeCommand,
+    executeAudioCommand,
     addItem,
     changeQuantity,
     changeCategory,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Brain, Info, Activity } from 'lucide-react';
+import { Zap, Brain, Headphones, Info, Activity } from 'lucide-react';
 import type { CommandParseResponse, CommandStats } from '../api/client';
 
 interface ReasoningBadgeProps {
@@ -13,34 +13,49 @@ export const ReasoningBadge: React.FC<ReasoningBadgeProps> = ({ lastCommand, sta
   if (!lastCommand && !stats) return null;
 
   const isInstant = lastCommand?.reasoning_path === 'instant';
+  const isDeliberated = lastCommand?.reasoning_path === 'deliberated';
+  const usedWhisper = lastCommand?.transcription_source === 'whisper' || lastCommand?.audio_transcription_used;
   const confidencePct = Math.round((lastCommand?.confidence || 1.0) * 100);
 
   return (
     <div className="w-full max-w-md mx-auto px-4 mb-4">
       {lastCommand && (
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-2">
-            <div
-              id="reasoning-badge-pill"
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-sm transition-all border ${
-                isInstant
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-emerald-100/50'
-                  : 'bg-blue-50 text-blue-700 border-blue-200 shadow-blue-100/50'
-              }`}
-            >
-              {isInstant ? (
-                <>
-                  <Zap className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
-                  <span>⚡ Instant (System 1: Fast Reflex)</span>
-                </>
-              ) : (
-                <>
-                  <Brain className="w-3.5 h-3.5 text-blue-500" />
-                  <span>🧠 Deliberated (System 2: Conscious LLM)</span>
-                </>
-              )}
-            </div>
+        <div className="flex flex-col items-center gap-2">
+          {/* Stackable Tags Container */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {/* Tag 1: Whisper Careful Listening (if audio upload transcription was used) */}
+            {usedWhisper && (
+              <div
+                id="badge-whisper"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-sm bg-purple-50 text-purple-700 border border-purple-200 shadow-purple-100/50 transition-all"
+              >
+                <Headphones className="w-3.5 h-3.5 text-purple-600" />
+                <span>🎧 Careful Listening (Whisper Large V3)</span>
+              </div>
+            )}
 
+            {/* Tag 2: Instant Reflex (System 1) OR Groq Deliberated (System 2) */}
+            {isInstant && !usedWhisper && (
+              <div
+                id="badge-instant"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-sm bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-emerald-100/50 transition-all"
+              >
+                <Zap className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
+                <span>⚡ Instant (System 1: Fast Reflex)</span>
+              </div>
+            )}
+
+            {isDeliberated && (
+              <div
+                id="badge-groq"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-sm bg-blue-50 text-blue-700 border border-blue-200 shadow-blue-100/50 transition-all"
+              >
+                <Brain className="w-3.5 h-3.5 text-blue-500" />
+                <span>🧠 Thought it through (Groq LLaMA-3)</span>
+              </div>
+            )}
+
+            {/* Info Trigger Button */}
             <button
               type="button"
               onClick={() => setShowExplanation(!showExplanation)}
@@ -52,21 +67,23 @@ export const ReasoningBadge: React.FC<ReasoningBadgeProps> = ({ lastCommand, sta
           </div>
 
           <p className="text-[11px] text-slate-500 text-center">
-            {isInstant
+            {usedWhisper && isDeliberated
+              ? `Whisper V3 precision transcription + Groq LLaMA-3 natural language understanding`
+              : isInstant
               ? `Local pattern match resolved in <50ms (Confidence: ${confidencePct}%)`
-              : `Deep language understanding used for ambiguous/multilingual input`}
+              : `Groq LLaMA-3 conscious reasoning used for ambiguous/multilingual input`}
           </p>
 
           {showExplanation && (
-            <div className="w-full bg-slate-900 text-slate-200 text-xs p-3 rounded-xl mt-2 space-y-1.5 shadow-md animate-fadeIn">
-              <div className="font-semibold text-emerald-400 flex items-center gap-1">
-                <span>Thinking Fast & Slow Architecture:</span>
+            <div className="w-full bg-slate-900 text-slate-200 text-xs p-3.5 rounded-2xl mt-2 space-y-2 shadow-md animate-fadeIn text-left">
+              <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
+                <span>⚡ Thinking Fast & Slow Architectural Split:</span>
               </div>
               <p className="text-slate-300 leading-relaxed">
-                <strong>System 1 (Local Regex):</strong> Handles familiar phrasing ("add milk", "remove eggs") with sub-50ms latency & $0 API cost.
+                <strong>1. Audio Input:</strong> Browser Web Speech API handles quick familiar voice commands instantly (Fast path). Non-English or complex audio cascades to Hugging Face Whisper Large V3 for precision (Careful path).
               </p>
               <p className="text-slate-300 leading-relaxed">
-                <strong>System 2 (LLM / NLU):</strong> Awakens only for complex phrasing ("we're out of coffee"), multiple items, or foreign languages.
+                <strong>2. Language Understanding:</strong> System 1 regex handles 80% of routine actions in sub-50ms ($0 cost). System 2 Groq LLaMA-3 awakens only when deliberation is needed.
               </p>
             </div>
           )}
@@ -83,7 +100,6 @@ export const ReasoningBadge: React.FC<ReasoningBadgeProps> = ({ lastCommand, sta
             <span>{stats.total_commands} total commands</span>
           </div>
 
-          {/* Progress bar split */}
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
             <div
               className="bg-emerald-500 h-full transition-all duration-500"

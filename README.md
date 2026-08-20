@@ -1,7 +1,9 @@
 # Voice Shopping Assistant (Thinking Fast & Slow Architecture)
 
 An explainable, human-logic voice shopping assistant organized around two core ideas:
-1. **System 1 / System 2 Dual-Engine NLP**: Local sub-50ms regex parser for predictable commands; conscious LLM fallback for ambiguous, multi-item, or multilingual queries.
+1. **Fast & Slow Dual-Engine Architecture (Audio + NLU)**:
+   - **Fast Path (System 1)**: Instant in-browser speech recognition + local sub-50ms regex parser for routine commands (`⚡ Instant`, $0 cost).
+   - **Slow Path (System 2)**: Hugging Face Whisper Large V3 for accurate audio transcription (`🎧 Careful Listening`) + Groq LLaMA-3 for conscious natural-language understanding (`🧠 Thought it through`).
 2. **Pantry Decay Model**: Proactive, explainable "running low" suggestions calculated from shelf-life depletion rates rather than black-box recommender systems.
 
 ---
@@ -9,17 +11,33 @@ An explainable, human-logic voice shopping assistant organized around two core i
 ## ⚡ Architecture Overview
 
 ```
-Voice / Text Input
+Voice / Audio Input
         │
-        ▼
-[System 1: Fast Rule Parser] ──(Confidence >= 0.75 & English)──► [⚡ Instant Execution (<50ms, $0)]
-        │
-        └──(Confidence < 0.75 OR Multilingual)──► [🧠 System 2: LLM Escalation (Gemini/Groq/OpenAI)]
+        ├──[English / Familiar]──► [Web Speech API (Browser STT)] ──► [System 1: Regex Parser (<50ms, $0)]
+        │                                                                     │ (Confidence >= 0.75)
+        │                                                                     ▼
+        │                                                           [⚡ Instant Execution]
+        │                                                                     │
+        └──[Multilingual / Low Conf]──► [Whisper Large V3] ──► [System 2: Groq LLaMA-3]
+                                         (🎧 Careful Listening)        (🧠 Thought it through)
 ```
 
-- **System 1 (Instant Reflex)**: Evaluates regex intent templates (`ADD`, `REMOVE`, `SEARCH`), extracts quantities/units (e.g. *"2 bottles"*, *"a dozen"*), cleans stopwords, and scores confidence.
-- **System 2 (Conscious Thought)**: Awakens on multi-item phrasing (*"add milk and 2 dozen eggs"*), conversational phrasing (*"we are out of olive oil"*), or non-English input (*Hindi/Spanish*).
-- **Reasoning Badge**: The UI transparently indicates `⚡ Instant (System 1)` vs `🧠 Deliberated (System 2)` along with live telemetry ratios.
+- **Reasoning Badge**: The UI transparently indicates `⚡ Instant (System 1)`, `🎧 Careful Listening (Whisper V3)`, and `🧠 Thought it through (Groq LLaMA-3)` as small stackable tags with live architecture telemetry.
+
+---
+
+## 🔑 Environment Variables
+
+Create a `backend/.env` file (copied from `backend/.env.example`):
+
+| Variable | Description | Where to Get |
+| :--- | :--- | :--- |
+| `GROQ_API_KEY` | Free-tier API key powering System 2 conscious LLM understanding | [Groq Console API Keys](https://console.groq.com/keys) |
+| `HF_API_TOKEN` | Free-tier token for Hugging Face Whisper Large V3 transcription | [Hugging Face Access Tokens](https://huggingface.co/settings/tokens) |
+| `CORS_ORIGINS` | Comma-separated allowed frontend origins (defaults to `*` for local dev) | Custom domain if deploying |
+| `DATABASE_URL` | SQLite database URI (defaults to `sqlite:///./shopping_assistant.db`) | Local file path |
+
+*(Note: If API keys are omitted, the app gracefully falls back to local intelligent offline parsers without crashing).*
 
 ---
 
@@ -47,15 +65,15 @@ pip install -r requirements.txt
 # Run FastAPI server
 uvicorn main:app --reload --port 8000
 ```
-- API Docs: `http://127.0.0.1:8000/docs`
-- SQLite database is created automatically at `shopping_assistant.db`.
+- API Documentation: `http://127.0.0.1:8000/docs`
+- SQLite database is created automatically at `backend/shopping_assistant.db`.
 
 ### 2. Start Frontend
 
 ```bash
 cd frontend
 
-# Install and run Vite dev server
+# Install dependencies and start Vite dev server
 npm install
 npm run dev
 ```
@@ -65,18 +83,9 @@ npm run dev
 
 ## 🧪 Running System 1 Tests
 
-Run the 20-phrase unit test suite:
+Run the unit test suite:
 
 ```bash
 cd backend
 pytest test_system1.py -v
 ```
-
----
-
-## 🎯 Scoping & Architectural Decisions
-
-- **No Auth / Message Queues**: Kept strictly zero-setup and self-contained.
-- **In-Browser Web Speech API**: Zero backend transcription cost and sub-second voice responsiveness.
-- **English-Only System 1 by Design**: Non-English languages (Hindi, Spanish) route directly to System 2 LLM translation and extraction.
-- **Simulated Store Catalog**: `products.json` simulates a local grocery catalog with brands and price filtering.

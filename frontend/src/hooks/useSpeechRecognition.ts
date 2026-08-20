@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// SpeechRecognition type declarations for browser support
 interface IWindow extends Window {
   webkitSpeechRecognition?: any;
   SpeechRecognition?: any;
@@ -22,7 +21,7 @@ export interface UseSpeechRecognitionReturn {
 }
 
 export function useSpeechRecognition(
-  onFinalTranscript?: (text: string, language: SupportedLanguage) => void
+  onFinalResult?: (text: string, audioBlob: Blob | null, language: SupportedLanguage) => void
 ): UseSpeechRecognitionReturn {
   const [isListening, setIsListening] = useState<boolean>(false);
   const [transcript, setTranscript] = useState<string>('');
@@ -32,8 +31,11 @@ export function useSpeechRecognition(
   const [isSupported, setIsSupported] = useState<boolean>(true);
 
   const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const finalTranscriptRef = useRef<string>('');
 
+  // Setup Web Speech API & MediaRecorder
   useEffect(() => {
     const windowWithSpeech = window as unknown as IWindow;
     const SpeechRecognition =
@@ -41,7 +43,7 @@ export function useSpeechRecognition(
 
     if (!SpeechRecognition) {
       setIsSupported(false);
-      setError('Web Speech API is not supported in this browser. Please use Google Chrome, Edge, or enter text manually.');
+      setError('Web Speech API is not supported in this browser. Please use Chrome/Edge or type your command.');
       return;
     }
 
@@ -82,11 +84,11 @@ export function useSpeechRecognition(
       recognition.onerror = (event: any) => {
         setIsListening(false);
         if (event.error === 'not-allowed') {
-          setError('Microphone access was denied. Please allow microphone permissions in your browser.');
+          setError('Microphone access was denied. Please grant microphone permissions.');
         } else if (event.error === 'no-speech') {
-          setError('No speech was detected. Please try speaking again.');
+          setError('No speech was detected. Please try again.');
         } else if (event.error === 'network') {
-          setError('Network error during speech recognition. Please check your internet connection.');
+          setError('Network error during speech recognition.');
         } else {
           setError(`Speech recognition error: ${event.error}`);
         }
@@ -94,9 +96,11 @@ export function useSpeechRecognition(
 
       recognition.onend = () => {
         setIsListening(false);
-        const finalRecorded = finalTranscriptRef.current;
-        if (finalRecorded && onFinalTranscript) {
-          onFinalTranscript(finalRecorded, language);
+        // Stop MediaRecorder if running
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+        } else {
+          deliverResult();
         }
       };
 
@@ -114,32 +118,64 @@ export function useSpeechRecognition(
         }
       }
     };
-  }, [language, onFinalTranscript]);
+  }, [language]);
 
-  const startListening = useCallback(() => {
+  const deliverResult = useCallback(() => {
+    let audioBlob: Blob | null = null;
+    if (audioChunksRef.current.length > 0) {
+      audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+    }
+    const finalRecorded = finalTranscriptRef.current;
+    if (onFinalResult) {
+      onFinalResult(finalRecorded, audioBlob, language);
+    }
+  }, [language, onFinalResult]);
+
+  const startListening = useCallback(async () => {
     setError(null);
     finalTranscriptRef.current = '';
     setTranscript('');
     setInterimTranscript('');
+    audioChunksRef.current = [];
 
-    if (!recognitionRef.current) {
-      setError('Speech recognition is not initialized.');
-      return;
+    // Start audio stream for MediaRecorder alongside speech recognition
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach((track) => track.stop());
+          deliverResult();
+        };
+
+        mediaRecorder.start();
+      }
+    } catch {
+      // Microphone stream fallback if MediaRecorder fails
     }
 
-    try {
-      recognitionRef.current.lang = language;
-      recognitionRef.current.start();
-    } catch (e: any) {
-      // In case start was called while already running
+    if (recognitionRef.current) {
       try {
-        recognitionRef.current.stop();
-        setTimeout(() => recognitionRef.current.start(), 150);
+        recognitionRef.current.lang = language;
+        recognitionRef.current.start();
       } catch {
-        setError('Could not start listening. Please try again.');
+        try {
+          recognitionRef.current.stop();
+          setTimeout(() => recognitionRef.current.start(), 150);
+        } catch {
+          setError('Could not start listening. Please try again.');
+        }
       }
     }
-  }, [language]);
+  }, [deliverResult, language]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -149,6 +185,9 @@ export function useSpeechRecognition(
         // ignore
       }
     }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
     setIsListening(false);
   }, []);
 
@@ -156,6 +195,7 @@ export function useSpeechRecognition(
     setTranscript('');
     setInterimTranscript('');
     finalTranscriptRef.current = '';
+    audioChunksRef.current = [];
   }, []);
 
   return {

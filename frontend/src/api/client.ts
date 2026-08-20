@@ -20,6 +20,8 @@ export interface CommandParseResponse {
   intent: 'ADD' | 'REMOVE' | 'SEARCH' | 'UNKNOWN';
   reasoning_path: 'instant' | 'deliberated';
   confidence: number;
+  transcription_source?: 'web_speech' | 'whisper' | string;
+  audio_transcription_used?: boolean;
   items: Array<{ name: string; quantity: number; unit: string | null }>;
   brand: string | null;
   price_filter: { max_price: number | null; min_price: number | null } | null;
@@ -94,7 +96,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
         const errorJson = await res.json();
         errorMessage = errorJson.error || errorMessage;
       } catch {
-        // Fallback to status text
+        // Fallback
       }
       throw new Error(errorMessage);
     }
@@ -109,11 +111,42 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
-  parseCommand: (transcript: string, language: string = 'en') =>
+  parseCommand: (transcript: string, language: string = 'en', transcriptionSource: string = 'web_speech') =>
     request<CommandParseResponse>('/api/commands/parse', {
       method: 'POST',
-      body: JSON.stringify({ transcript, language }),
+      body: JSON.stringify({ transcript, language, transcription_source: transcriptionSource }),
     }),
+
+  transcribeAudio: async (audioBlob: Blob, language: string = 'en'): Promise<CommandParseResponse> => {
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('language', language);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/commands/transcribe-audio`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        let errorMessage = `Transcription failed (${res.status})`;
+        try {
+          const errorJson = await res.json();
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          // fallback
+        }
+        throw new Error(errorMessage);
+      }
+
+      return (await res.json()) as CommandParseResponse;
+    } catch (err: any) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        throw new Error("Couldn't reach the server — check your connection or start the backend");
+      }
+      throw err;
+    }
+  },
 
   getItems: (statusFilter: string = 'active') =>
     request<ShoppingItem[]>(`/api/items?status_filter=${statusFilter}`),

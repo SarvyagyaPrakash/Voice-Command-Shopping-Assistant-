@@ -1,15 +1,13 @@
 # Architectural Approach: Human-Logic Voice Shopping Assistant
 
-This assistant is built around how humans naturally think ("thinking fast and slow"):
+This assistant is organized around how humans naturally think ("thinking fast and slow"):
 
-1. **System 1 (Fast & Reflexive)**: Familiar phrasing ("add milk", "remove eggs") is processed instantly by a local rule-based parser in sub-50ms with zero network or LLM costs.
-2. **System 2 (Slow & Deliberated)**: Only when confidence drops below 0.75—due to multi-item sentences, conversational ambiguity, or language switching (Hindi/Spanish)—does the app escalate to a conscious LLM for deep natural-language understanding.
+1. **Dual-Engine Audio & NLU**: Both transcription and intent parsing follow a fast/slow hierarchy. Common commands use instant browser speech recognition and local sub-50ms regex parsing (`⚡ instant`, $0 cost), while multilingual speech, noisy audio, or complex phrasing escalate to Hugging Face Whisper Large V3 (`🎧 careful listening`) and Groq LLaMA-3 (`🧠 thought it through`).
+2. **Explainable UI Telemetry**: The UI transparently surfaces this cognitive split with interactive stackable reasoning badges and telemetry distribution counters.
 
-The UI transparently surfaces this cognitive split via an interactive badge (`⚡ instant` vs `🧠 deliberated`) and telemetry counters, showing reviewer-visible reasoning.
-
-Smart suggestions avoid black-box ML recommenders in favor of an explainable **Pantry Decay Model**:
-- Each item is assigned an estimated shelf-life depletion date (milk ≈ 5d, bread ≈ 6d, bananas ≈ 4d).
+Smart suggestions avoid black-box ML recommenders in favor of a human-logic **Pantry Decay Model**:
+- Every grocery item is assigned an estimated shelf-life depletion date (milk ≈ 5d, bread ≈ 6d, bananas ≈ 4d).
 - Items proactively resurface as "running low" alerts shortly before expiration, mirroring human grocery mental math.
-- Seasonal produce and healthy substitutes use clean, static lookups rather than opaque neural models.
+- Seasonal produce and healthy substitutes use clean, explainable static lookups rather than opaque neural models.
 
-This delivers a sub-50ms responsive experience that remains explainable, cost-effective, and capable of handling complex language.
+This delivers a sub-50ms responsive experience that remains fully explainable, cost-effective, and capable of handling complex natural language.
