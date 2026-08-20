@@ -17,7 +17,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
   const [isSearching, setIsSearching] = useState(false);
   const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
 
-  // Listen to external voice search queries triggered from the voice button
   useEffect(() => {
     if (externalSearchQuery) {
       setIsOpen(true);
@@ -67,40 +66,40 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
   };
 
   return (
-    <div className="w-full px-4 my-3">
+    <div className="w-full px-2 my-3">
       {!isOpen ? (
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-full bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 flex items-center justify-between text-slate-500 shadow-sm transition-all"
+          className="w-full bg-white/90 hover:bg-white border border-palette-light hover:border-palette-soft rounded-3xl py-3 px-4 flex items-center justify-between text-palette-deep/70 shadow-card-elevated transition-all group"
         >
-          <div className="flex items-center gap-2 text-xs">
-            <Search className="w-4 h-4 text-slate-400" />
+          <div className="flex items-center gap-2.5 text-xs font-semibold">
+            <Search className="w-4 h-4 text-palette-primary group-hover:scale-110 transition-transform" />
             <span>Search store catalog & filter by brand/price...</span>
           </div>
-          <span className="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">
+          <span className="text-[10px] font-extrabold bg-palette-light text-palette-deep border border-palette-soft/50 px-2.5 py-0.5 rounded-full">
             Catalog
           </span>
         </button>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-md space-y-3">
+        <div className="bg-white/95 backdrop-blur-sm border border-palette-soft rounded-3xl p-4 shadow-card-elevated space-y-3.5 animate-fadeIn">
           {/* Header & Close */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1">
-              <Search className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-2.5 flex-1">
+              <Search className="w-4 h-4 text-palette-primary shrink-0" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search items, brands, or categories..."
-                className="w-full text-xs bg-transparent focus:outline-none text-slate-800"
+                className="w-full text-xs font-semibold bg-transparent focus:outline-none text-palette-deep placeholder:text-palette-deep/40"
                 autoFocus
               />
             </div>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100"
+              className="text-palette-deep/40 hover:text-palette-deep p-1.5 rounded-full hover:bg-palette-light/60 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -108,16 +107,16 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
 
           {/* Filter Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
-            <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 mr-1" />
+            <Filter className="w-3.5 h-3.5 text-palette-primary shrink-0 mr-1" />
 
             {/* Price Chips */}
             <button
               type="button"
               onClick={() => setSelectedMaxPrice(selectedMaxPrice === 5 ? null : 5)}
-              className={`px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
+              className={`px-3 py-1 rounded-full whitespace-nowrap font-bold transition-all ${
                 selectedMaxPrice === 5
-                  ? 'bg-emerald-600 text-white font-medium'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-palette-deep text-white shadow-xs'
+                  : 'bg-palette-light text-palette-deep border border-palette-soft/40 hover:bg-palette-soft/40'
               }`}
             >
               Under $5
@@ -125,10 +124,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
             <button
               type="button"
               onClick={() => setSelectedMaxPrice(selectedMaxPrice === 10 ? null : 10)}
-              className={`px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
+              className={`px-3 py-1 rounded-full whitespace-nowrap font-bold transition-all ${
                 selectedMaxPrice === 10
-                  ? 'bg-emerald-600 text-white font-medium'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-palette-deep text-white shadow-xs'
+                  : 'bg-palette-light text-palette-deep border border-palette-soft/40 hover:bg-palette-soft/40'
               }`}
             >
               Under $10
@@ -140,10 +139,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
                 key={brand}
                 type="button"
                 onClick={() => setSelectedBrand(selectedBrand === brand ? '' : brand)}
-                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
+                className={`px-3 py-1 rounded-full whitespace-nowrap font-bold transition-all ${
                   selectedBrand === brand
-                    ? 'bg-blue-600 text-white font-medium'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-palette-primary text-white shadow-xs'
+                    : 'bg-palette-light text-palette-deep border border-palette-soft/40 hover:bg-palette-soft/40'
                 }`}
               >
                 {brand}
@@ -154,7 +153,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-[10px] text-rose-500 hover:underline shrink-0 ml-1"
+                className="text-[10px] font-bold text-rose-600 hover:underline shrink-0 ml-1"
               >
                 Clear
               </button>
@@ -162,13 +161,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
           </div>
 
           {/* Search Results List */}
-          <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 pt-1">
+          <div className="max-h-60 overflow-y-auto divide-y divide-palette-light/50 pt-1">
             {isSearching ? (
-              <p className="text-center py-4 text-xs text-slate-400 animate-pulse">
-                Searching simulated store catalog...
+              <p className="text-center py-4 text-xs font-semibold text-palette-primary animate-pulse">
+                Searching store catalog...
               </p>
             ) : results.length === 0 ? (
-              <p className="text-center py-4 text-xs text-slate-400">
+              <p className="text-center py-4 text-xs font-medium text-palette-deep/50">
                 No matching store catalog products found.
               </p>
             ) : (
@@ -177,33 +176,33 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onAddItem, externalSearchQ
                 return (
                   <div
                     key={p.id}
-                    className="py-2 flex items-center justify-between gap-2 hover:bg-slate-50 px-1 rounded-lg"
+                    className="py-2.5 flex items-center justify-between gap-2 hover:bg-palette-light/30 px-2 rounded-2xl transition-colors"
                   >
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-medium text-slate-900">{p.name}</span>
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">
+                        <span className="text-xs font-extrabold text-palette-deep">{p.name}</span>
+                        <span className="text-[10px] font-bold bg-palette-light text-palette-deep px-2 py-0.5 rounded-full border border-palette-soft/40">
                           {p.brand}
                         </span>
                       </div>
-                      <p className="text-[11px] text-emerald-700 font-mono font-medium">
+                      <p className="text-[11px] text-palette-primary font-mono font-bold mt-0.5">
                         ${p.price.toFixed(2)}{' '}
-                        <span className="text-slate-400 font-normal">/ {p.unit}</span>
+                        <span className="text-palette-deep/50 font-normal">/ {p.unit}</span>
                       </p>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => handleAddProduct(p)}
-                      className={`text-xs px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 transition-all ${
+                      className={`text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all active:scale-95 ${
                         isAdded
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-slate-900 hover:bg-slate-800 text-white'
+                          ? 'bg-palette-light text-palette-deep border border-palette-soft'
+                          : 'bg-palette-deep hover:bg-palette-primary text-white shadow-xs'
                       }`}
                     >
                       {isAdded ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <Check className="w-3.5 h-3.5 text-palette-primary" />
                           Added
                         </>
                       ) : (

@@ -1,14 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans min-h-screen selection:bg-emerald-100 selection:text-emerald-900;
+    @apply bg-palette-subtle text-palette-deep font-sans antialiased min-h-screen selection:bg-palette-soft selection:text-palette-deep;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(227, 242, 253, 0.8) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(144, 202, 249, 0.3) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(227, 242, 253, 0.6) 0px, transparent 50%);
+    background-attachment: fixed;
   }
 }
 
-/* Custom scrollbars */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   height: 6px;
   width: 6px;
@@ -17,9 +24,18 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #90CAF9;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #2196F3;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

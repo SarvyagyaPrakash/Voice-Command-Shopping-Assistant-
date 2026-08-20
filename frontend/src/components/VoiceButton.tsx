@@ -46,64 +46,64 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto my-4 px-4">
+    <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto my-3 px-2">
       {/* Language Selector Chips */}
-      <div className="flex items-center gap-2 mb-3 bg-slate-100 p-1 rounded-full border border-slate-200 text-xs font-medium text-slate-600">
-        <Globe className="w-3.5 h-3.5 ml-2 text-slate-400" />
+      <div className="flex items-center gap-1.5 mb-3.5 bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl border border-palette-light shadow-xs text-xs font-semibold text-palette-deep">
+        <Globe className="w-3.5 h-3.5 ml-2 text-palette-primary shrink-0" />
         <button
           type="button"
           onClick={() => onLanguageChange('en-US')}
-          className={`px-3 py-1 rounded-full transition-all ${
+          className={`px-3 py-1.5 rounded-xl transition-all ${
             language === 'en-US'
-              ? 'bg-white text-emerald-700 shadow-sm font-semibold'
-              : 'hover:text-slate-900'
+              ? 'bg-palette-deep text-white shadow-sm font-bold'
+              : 'text-palette-deep/70 hover:text-palette-deep hover:bg-palette-light/50'
           }`}
         >
-          English (⚡ Fast)
+          English
         </button>
         <button
           type="button"
           onClick={() => onLanguageChange('hi-IN')}
-          className={`px-3 py-1 rounded-full transition-all ${
+          className={`px-3 py-1.5 rounded-xl transition-all ${
             language === 'hi-IN'
-              ? 'bg-white text-blue-700 shadow-sm font-semibold'
-              : 'hover:text-slate-900'
+              ? 'bg-palette-deep text-white shadow-sm font-bold'
+              : 'text-palette-deep/70 hover:text-palette-deep hover:bg-palette-light/50'
           }`}
         >
-          हिंदी (🧠 Conscious)
+          हिंदी
         </button>
         <button
           type="button"
           onClick={() => onLanguageChange('es-ES')}
-          className={`px-3 py-1 rounded-full transition-all ${
+          className={`px-3 py-1.5 rounded-xl transition-all ${
             language === 'es-ES'
-              ? 'bg-white text-blue-700 shadow-sm font-semibold'
-              : 'hover:text-slate-900'
+              ? 'bg-palette-deep text-white shadow-sm font-bold'
+              : 'text-palette-deep/70 hover:text-palette-deep hover:bg-palette-light/50'
           }`}
         >
-          Español (🧠 Conscious)
+          Español
         </button>
       </div>
 
       {/* Live Interim Transcript Display */}
-      <div className="min-h-[32px] flex items-center justify-center text-center mb-2 px-3">
+      <div className="min-h-[34px] flex items-center justify-center text-center mb-2 px-3">
         {isListening ? (
-          <div className="flex flex-col items-center">
-            <p className="text-sm font-semibold text-emerald-600 animate-pulse flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              {interimTranscript ? `"${interimTranscript}"` : 'Listening... speak now'}
+          <div className="flex flex-col items-center animate-fadeIn">
+            <p className="text-sm font-bold text-palette-primary animate-pulse flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-palette-primary animate-ping" />
+              {interimTranscript ? `"${interimTranscript}"` : 'Listening... Speak your command'}
             </p>
-            <span className="text-[10px] text-slate-400 mt-0.5">
+            <span className="text-[11px] font-medium text-palette-deep/70 mt-0.5">
               Tap mic button again when finished speaking
             </span>
           </div>
         ) : isParsing ? (
-          <p className="text-sm font-medium text-blue-600 flex items-center gap-1.5 animate-pulse">
-            <Sparkles className="w-4 h-4 animate-spin text-blue-500" />
-            Processing command...
+          <p className="text-sm font-bold text-palette-primary flex items-center gap-2 animate-pulse">
+            <Sparkles className="w-4 h-4 animate-spin text-palette-primary" />
+            Analyzing with Thinking Fast & Slow...
           </p>
         ) : (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-palette-deep/60 font-medium">
             Tap mic to speak • Tap again to process • Or type below
           </p>
         )}
@@ -112,7 +112,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
       {/* Large Mic Button */}
       <div className="relative my-2">
         {isListening && (
-          <div className="absolute inset-0 rounded-full bg-emerald-400 opacity-75 animate-ping pointer-events-none" />
+          <div className="absolute inset-0 rounded-full bg-palette-primary opacity-60 animate-ripple pointer-events-none" />
         )}
         <button
           type="button"
@@ -120,28 +120,28 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
           onClick={handleMicClick}
           disabled={!isSupported || isParsing}
           aria-label={isListening ? 'Stop listening' : 'Start voice recognition'}
-          className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 transform active:scale-95 ${
+          className={`relative z-10 w-22 h-22 rounded-full flex items-center justify-center transition-all duration-300 transform active:scale-95 ${
             !isSupported
               ? 'bg-slate-200 text-slate-400 cursor-not-allowed border-2 border-slate-300'
               : isListening
-              ? 'bg-emerald-500 text-white shadow-emerald-200 scale-105 ring-4 ring-emerald-200'
+              ? 'bg-palette-deep text-white shadow-glow-primary scale-105 ring-4 ring-palette-soft'
               : isParsing
-              ? 'bg-blue-500 text-white animate-pulse'
-              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-100 hover:shadow-xl'
+              ? 'bg-palette-primary text-white animate-pulse shadow-glow-primary'
+              : 'bg-gradient-to-tr from-palette-deep via-palette-primary to-palette-soft hover:from-palette-primary hover:to-palette-deep text-white shadow-glow-primary hover:shadow-xl hover:scale-102'
           }`}
         >
           {isListening ? (
-            <MicOff className="w-8 h-8" />
+            <MicOff className="w-9 h-9 drop-shadow-md" />
           ) : (
-            <Mic className="w-8 h-8" />
+            <Mic className="w-9 h-9 drop-shadow-md" />
           )}
         </button>
       </div>
 
       {/* Speech Error Banner */}
       {speechError && (
-        <div className="mt-3 w-full bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-start gap-2 text-xs text-amber-800">
-          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="mt-3 w-full bg-rose-50 border border-rose-200 rounded-2xl p-3 flex items-start gap-2.5 text-xs text-rose-800 animate-fadeIn">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
           <p>{speechError}</p>
         </div>
       )}
@@ -156,19 +156,19 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
             onChange={(e) => setTypedInput(e.target.value)}
             placeholder={
               language === 'hi-IN'
-                ? "या टाइप करें (उदा. 'doodh aur andey add karo')"
+                ? "या टाइप करें (उदा. 'doodh aur andey lao')"
                 : language === 'es-ES'
                 ? "O escribe (ej. 'agregar 2 leches y cafe')"
-                : "Or type a command (e.g. 'buy 3 apples')"
+                : "Or type a command (e.g. 'add 2 bottles of milk')"
             }
             disabled={isParsing}
-            className="w-full text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm"
+            className="w-full text-xs font-medium bg-white/90 backdrop-blur-sm border border-palette-light rounded-2xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-palette-primary focus:border-transparent transition-all shadow-xs text-palette-deep placeholder:text-palette-deep/40"
           />
           {typedInput && (
             <button
               type="button"
               onClick={() => setTypedInput('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-palette-deep/40 hover:text-palette-deep p-1"
             >
               ✕
             </button>
@@ -178,7 +178,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
           type="submit"
           id="manual-submit-button"
           disabled={!typedInput.trim() || isParsing}
-          className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white disabled:text-slate-400 rounded-xl px-4 py-2.5 text-sm font-medium transition-all flex items-center justify-center shrink-0 shadow-sm"
+          className="bg-palette-deep hover:bg-palette-navy disabled:bg-palette-light disabled:text-palette-deep/30 text-white rounded-2xl px-4 py-3 text-xs font-bold transition-all flex items-center justify-center shrink-0 shadow-sm active:scale-95"
         >
           <Send className="w-4 h-4" />
         </button>

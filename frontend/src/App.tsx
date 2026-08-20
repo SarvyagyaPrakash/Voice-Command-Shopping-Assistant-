@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { ShoppingCart, Sparkles, HelpCircle, CheckCircle2, AlertTriangle, Info, RefreshCw } from 'lucide-react';
+import { ShoppingCart, HelpCircle, CheckCircle2, AlertTriangle, Info, RefreshCw, Cpu } from 'lucide-react';
 import { useSpeechRecognition, type SupportedLanguage } from './hooks/useSpeechRecognition';
 import { useShoppingList } from './hooks/useShoppingList';
 import { VoiceButton } from './components/VoiceButton';
@@ -93,26 +93,26 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
+    <div className="min-h-screen pb-20">
       {/* Toast Notification Banner */}
       {toast && (
         <div
-          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[90%] px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-3 transition-all animate-bounce-short ${
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] px-4 py-3.5 rounded-2xl shadow-xl border backdrop-blur-md flex items-center gap-3 transition-all animate-fadeIn ${
             toast.type === 'success'
-              ? 'bg-slate-900 text-white border-slate-800'
+              ? 'bg-palette-deep/95 text-white border-palette-soft/40 shadow-glow-soft'
               : toast.type === 'error'
-              ? 'bg-rose-900 text-white border-rose-800'
-              : 'bg-slate-800 text-white border-slate-700'
+              ? 'bg-rose-900/95 text-white border-rose-700/50'
+              : 'bg-palette-deep/90 text-white border-palette-soft/30'
           }`}
         >
-          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
+          {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-palette-soft shrink-0" />}
           {toast.type === 'error' && <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />}
-          {toast.type === 'info' && <Info className="w-5 h-5 text-blue-400 shrink-0" />}
+          {toast.type === 'info' && <Info className="w-5 h-5 text-palette-soft shrink-0" />}
           <p className="text-xs font-medium leading-snug flex-1">{toast.text}</p>
           <button
             type="button"
             onClick={() => setToast(null)}
-            className="text-slate-400 hover:text-white text-xs font-bold px-1.5"
+            className="text-palette-soft/70 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded-md hover:bg-white/10 transition-colors"
           >
             ✕
           </button>
@@ -120,29 +120,32 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Responsive Container */}
-      <main className="max-w-md mx-auto pt-6 px-2">
+      <main className="max-w-md mx-auto pt-6 px-3">
         {/* Header */}
-        <header className="px-4 flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
-              <ShoppingCart className="w-5 h-5" />
+        <header className="px-3 flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-palette-deep to-palette-primary text-white flex items-center justify-center shadow-glow-primary transform hover:rotate-3 transition-transform">
+              <ShoppingCart className="w-5 h-5 drop-shadow-sm" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-slate-900 tracking-tight leading-tight">
+              <h1 className="text-base font-extrabold text-palette-deep tracking-tight leading-tight">
                 Voice Shopping Assistant
               </h1>
-              <p className="text-[11px] text-emerald-700 font-medium">
-                Dual-Engine NLU • Fast & Slow Thinking
-              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-palette-primary animate-pulse" />
+                <p className="text-[11px] text-palette-primary font-semibold tracking-wide uppercase">
+                  Fast & Slow Human Logic
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 bg-white/70 backdrop-blur-sm p-1 rounded-2xl border border-palette-light shadow-xs">
             <button
               type="button"
               onClick={refreshData}
               title="Refresh list"
-              className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors"
+              className="text-palette-deep/70 hover:text-palette-primary p-2 rounded-xl hover:bg-palette-light/60 transition-all"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -150,34 +153,43 @@ export const App: React.FC = () => {
               type="button"
               onClick={() => setShowArchExplainer(!showArchExplainer)}
               title="About Thinking Fast & Slow architecture"
-              className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors"
+              className={`p-2 rounded-xl transition-all ${
+                showArchExplainer 
+                  ? 'bg-palette-primary text-white shadow-sm' 
+                  : 'text-palette-deep/70 hover:text-palette-primary hover:bg-palette-light/60'
+              }`}
             >
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
         </header>
 
-        {/* Architecture Info Banner Modal / Card */}
+        {/* Architecture Info Banner Modal */}
         {showArchExplainer && (
-          <div className="mx-4 mb-4 bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 rounded-2xl p-4 shadow-xl border border-slate-700 text-xs space-y-2">
+          <div className="mx-2 mb-4 bg-gradient-to-br from-palette-deep via-palette-navy to-palette-deep text-white rounded-3xl p-4 shadow-card-elevated border border-palette-soft/30 text-xs space-y-2.5 animate-fadeIn">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-emerald-400 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" /> The Human-Logic Difference
+              <span className="font-bold text-palette-soft flex items-center gap-1.5 text-xs tracking-wide">
+                <Cpu className="w-4 h-4 text-palette-primary" /> The Thinking Fast & Slow Architecture
               </span>
               <button
                 type="button"
                 onClick={() => setShowArchExplainer(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-palette-soft hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all"
               >
                 ✕
               </button>
             </div>
-            <p className="text-slate-300 leading-relaxed">
-              <strong>1. Thinking Fast & Slow:</strong> System 1 handles 80% of routine commands locally in &lt;50ms ($0 cost). System 2 LLM awakens only for ambiguity or foreign speech.
-            </p>
-            <p className="text-slate-300 leading-relaxed">
-              <strong>2. Pantry Decay Model:</strong> Tracks grocery depletion intervals (milk ≈ 5d, bread ≈ 6d). Proactively surfaces "running low" alerts before you run out without black-box ML.
-            </p>
+            <div className="space-y-1.5 text-palette-light/90 leading-relaxed font-normal">
+              <p>
+                <strong className="text-white">⚡ System 1 (Instant Reflex):</strong> Sub-50ms regex parser handles 80% of familiar phrasing with $0 API cost and zero lag.
+              </p>
+              <p>
+                <strong className="text-white">🧠 System 2 (Conscious LLM):</strong> Groq LLaMA-3 awakens for multi-item sentences, ambiguous phrasing, or language switches.
+              </p>
+              <p>
+                <strong className="text-white">🎧 Careful Audio:</strong> Hugging Face Whisper Large V3 provides high-precision transcription for non-English audio.
+              </p>
+            </div>
           </div>
         )}
 
