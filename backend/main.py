@@ -232,6 +232,9 @@ def parse_and_execute_command(payload: CommandParseRequest, db: Session = Depend
 
             if existing:
                 existing.quantity += qty
+                # Replenishing / adding item resets its freshness timestamp and estimated depletion
+                existing.added_at = datetime.utcnow()
+                existing.estimated_depletion = depletion_date
                 db.commit()
                 db.refresh(existing)
                 mutated_items.append(_format_item_response(existing))
@@ -401,6 +404,8 @@ def create_item(payload: ItemCreate, db: Session = Depends(get_db)):
 
     if existing:
         existing.quantity += payload.quantity
+        existing.added_at = datetime.utcnow()
+        existing.estimated_depletion = depletion_date
         if payload.category:
             existing.category = payload.category
         if payload.unit:
