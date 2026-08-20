@@ -62,10 +62,10 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# Run FastAPI server
-uvicorn main:app --reload --port 8000
+# Run FastAPI server on port 8008
+uvicorn main:app --reload --port 8008
 ```
-- API Documentation: `http://127.0.0.1:8000/docs`
+- API Documentation: `http://127.0.0.1:8008/docs`
 - SQLite database is created automatically at `backend/shopping_assistant.db`.
 
 ### 2. Start Frontend
