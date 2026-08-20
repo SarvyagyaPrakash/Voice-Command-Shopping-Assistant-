@@ -32,32 +32,45 @@ export const App: React.FC = () => {
   const [externalSearchQuery, setExternalSearchQuery] = useState<string>('');
   const [showArchExplainer, setShowArchExplainer] = useState<boolean>(false);
 
-  // Handle final speech result (transcript + audio blob)
+  // Handle final speech result (transcript + audio blob) after user clicks STOP
   const handleFinalSpeechResult = useCallback(
     async (text: string, audioBlob: Blob | null, lang: SupportedLanguage) => {
       const languageCode = lang.split('-')[0]; // "en", "hi", "es"
+      
+      const cleanText = (text || '').trim();
+      const hasAudio = audioBlob && audioBlob.size > 1000;
+
+      // If user stopped without saying anything, don't execute any command
+      if (!cleanText && !hasAudio) {
+        setToast({
+          id: Date.now().toString(),
+          type: 'info',
+          text: 'No speech detected. Tap the mic, say your item, and tap again to stop.',
+        });
+        return;
+      }
+
       try {
         let result = null;
 
-        // If non-English and audio blob is recorded -> use Whisper Careful Listening
-        if (lang !== 'en-US' && audioBlob && audioBlob.size > 500) {
+        // If non-English or if live transcript is empty -> use Whisper
+        if (lang !== 'en-US' && hasAudio) {
           result = await executeAudioCommand(audioBlob, languageCode);
-        } else if (text && text.trim()) {
+        } else if (cleanText) {
           // English live speech recognition
-          result = await executeCommand(text.trim(), languageCode, 'web_speech');
-        } else if (audioBlob && audioBlob.size > 2000) {
-          // English fallback to Whisper only if substantial audio was recorded
+          result = await executeCommand(cleanText, languageCode, 'web_speech');
+        } else if (hasAudio) {
           result = await executeAudioCommand(audioBlob, languageCode);
         }
 
         if (result && result.intent === 'SEARCH') {
-          setExternalSearchQuery(result.brand || result.items[0]?.name || text);
+          setExternalSearchQuery(result.brand || result.items[0]?.name || cleanText);
         }
       } catch {
         // Handled in useShoppingList toast
       }
     },
-    [executeCommand, executeAudioCommand]
+    [executeCommand, executeAudioCommand, setToast]
   );
 
   const {

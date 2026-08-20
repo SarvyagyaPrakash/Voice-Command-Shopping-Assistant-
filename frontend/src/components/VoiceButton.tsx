@@ -86,12 +86,17 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
       </div>
 
       {/* Live Interim Transcript Display */}
-      <div className="min-h-[28px] flex items-center justify-center text-center mb-2 px-3">
+      <div className="min-h-[32px] flex items-center justify-center text-center mb-2 px-3">
         {isListening ? (
-          <p className="text-sm font-medium text-emerald-600 animate-pulse flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            {interimTranscript ? `"${interimTranscript}"` : 'Listening... speak now'}
-          </p>
+          <div className="flex flex-col items-center">
+            <p className="text-sm font-semibold text-emerald-600 animate-pulse flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              {interimTranscript ? `"${interimTranscript}"` : 'Listening... speak now'}
+            </p>
+            <span className="text-[10px] text-slate-400 mt-0.5">
+              Tap mic button again when finished speaking
+            </span>
+          </div>
         ) : isParsing ? (
           <p className="text-sm font-medium text-blue-600 flex items-center gap-1.5 animate-pulse">
             <Sparkles className="w-4 h-4 animate-spin text-blue-500" />
@@ -99,7 +104,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
           </p>
         ) : (
           <p className="text-xs text-slate-400">
-            Tap the mic or type below • e.g. "add 2 bottles of milk" or "remove eggs"
+            Tap mic to speak • Tap again to process • Or type below
           </p>
         )}
       </div>
