@@ -316,25 +316,52 @@ async def transcribe_audio(
     
     # 1. Primary Path: Hugging Face Inference API for Whisper Large V3
     if hf_token and hf_token.strip():
+        hf_urls = [
+            "https://router.huggingface.co/hf-inference/models/openai/whisper-large-v3",
+            "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
+        ]
+        headers = {
+            "Authorization": f"Bearer {hf_token.strip()}",
+            "Content-Type": file.content_type or "audio/webm"
+        }
+        
+        for url in hf_urls:
+            try:
+                async with httpx.AsyncClient(timeout=12.0) as client:
+                    resp = await client.post(url, headers=headers, content=audio_bytes)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        transcribed_text = data.get("text", "").strip()
+                        if transcribed_text:
+                            break
+            except Exception:
+                continue
+
+    # 2. Secondary Path: Groq Whisper Large V3 if HF endpoint is busy
+    groq_key = os.getenv("GROQ_API_KEY")
+    if not transcribed_text and groq_key and groq_key.strip():
         try:
-            hf_url = "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
-            headers = {"Authorization": f"Bearer {hf_token.strip()}"}
-            
-            # 10s timeout for audio inference
+            groq_url = "https://api.groq.com/openai/v1/audio/transcriptions"
+            headers = {"Authorization": f"Bearer {groq_key.strip()}"}
+            files = {"file": ("audio.webm", audio_bytes, file.content_type or "audio/webm")}
+            data = {"model": "whisper-large-v3"}
+            if language:
+                data["language"] = language.split("-")[0]
             async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.post(hf_url, headers=headers, content=audio_bytes)
+                resp = await client.post(groq_url, headers=headers, files=files, data=data)
                 if resp.status_code == 200:
-                    data = resp.json()
-                    transcribed_text = data.get("text", "").strip()
+                    transcribed_text = resp.json().get("text", "").strip()
         except Exception:
             pass
 
-    # 2. Graceful fallback if Whisper API key is missing or service is busy
+    # 3. If no speech was recognized, return error instead of hallucinating random items
     if not transcribed_text:
-        # Fallback to simulated phrase if no audio transcribed
-        transcribed_text = "add milk and 2 dozen eggs"
+        raise HTTPException(
+            status_code=400,
+            detail="No speech could be recognized in the audio recording. Please speak clearly and try again."
+        )
 
-    # Step 3: Run transcribed text through the dual-engine pipeline
+    # Step 4: Run transcribed text through the dual-engine pipeline
     parse_req = CommandParseRequest(
         transcript=transcribed_text,
         language=language,

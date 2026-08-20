@@ -39,11 +39,15 @@ export const App: React.FC = () => {
       try {
         let result = null;
 
-        // If non-English OR if text transcript is empty but audio blob exists -> send to Whisper Large V3
-        if ((lang !== 'en-US' || !text.trim()) && audioBlob && audioBlob.size > 0) {
+        // If non-English and audio blob is recorded -> use Whisper Careful Listening
+        if (lang !== 'en-US' && audioBlob && audioBlob.size > 500) {
           result = await executeAudioCommand(audioBlob, languageCode);
-        } else if (text.trim()) {
-          result = await executeCommand(text, languageCode, 'web_speech');
+        } else if (text && text.trim()) {
+          // English live speech recognition
+          result = await executeCommand(text.trim(), languageCode, 'web_speech');
+        } else if (audioBlob && audioBlob.size > 2000) {
+          // English fallback to Whisper only if substantial audio was recorded
+          result = await executeAudioCommand(audioBlob, languageCode);
         }
 
         if (result && result.intent === 'SEARCH') {
