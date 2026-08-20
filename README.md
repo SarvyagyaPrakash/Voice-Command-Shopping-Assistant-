@@ -1,5 +1,10 @@
 # Voice Shopping Assistant (Thinking Fast & Slow Architecture)
 
+[![Live App](https://img.shields.io/badge/Live%20Demo-Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://unthinkable-voice-assistant.netlify.app)
+[![API Status](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://unthinkable-voice-assistant.netlify.app)
+
+> 🌐 **Live Frontend Application:** [https://unthinkable-voice-assistant.netlify.app](https://unthinkable-voice-assistant.netlify.app)
+
 An explainable, human-logic voice shopping assistant organized around two core ideas:
 1. **Fast & Slow Dual-Engine Architecture (Audio + NLU)**:
    - **Fast Path (System 1)**: Instant in-browser speech recognition + local sub-50ms regex parser for routine commands (`⚡ Instant`, $0 cost).

@@ -147,13 +147,13 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
                       className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-palette-light/20 transition-colors"
                     >
                       {/* Left: Item Info & Depletion Progress */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-palette-deep truncate">
+                      <div className="flex-1 min-w-0 pr-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-sm font-bold text-palette-deep break-words leading-tight">
                             {item.name}
                           </h4>
                           {item.unit && (
-                            <span className="text-[11px] text-palette-deep/50 font-normal">
+                            <span className="text-[11px] text-palette-deep/60 font-medium">
                               ({item.unit})
                             </span>
                           )}
@@ -186,7 +186,7 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
                       </div>
 
                       {/* Right: Quantity Stepper & Actions */}
-                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                         {/* Category Selector Dropdown */}
                         <select
                           value={item.category}

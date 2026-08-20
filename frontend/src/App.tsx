@@ -120,7 +120,7 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Responsive Container */}
-      <main className="max-w-md mx-auto pt-6 px-3">
+      <main className="max-w-lg mx-auto pt-6 px-3">
         {/* Header */}
         <header className="px-3 flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
