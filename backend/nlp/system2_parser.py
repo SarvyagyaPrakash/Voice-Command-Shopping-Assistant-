@@ -90,7 +90,12 @@ def _offline_fallback_system2(transcript: str, language: str) -> Dict[str, Any]:
 
     # Clean text from triggers & filters
     working = lowered
-    for remove_phrase in ["under 5 dollars", "less than", "add", "remove", "find", "search for", "we are out of", "we ran out of", "i need", "please", "karo", "chahiye", "por favor", "necesito"]:
+    for remove_phrase in [
+        "under 5 dollars", "less than", "add", "remove", "find", "search for",
+        "we are out of", "we ran out of", "i need", "please", "karo", "chahiye",
+        "por favor", "necesito", "lao", "lana", "jodo", "le aao", "daalo",
+        "agregar", "comprar", "traer", "quitar"
+    ]:
         working = working.replace(remove_phrase, " ")
 
     # Multi-item split (by "and", "aur", "y", "also", comma)

@@ -176,13 +176,25 @@ def parse_and_execute_command(payload: CommandParseRequest, db: Session = Depend
     # Step 1: Process command through Fast & Slow dual-engine
     parsed = process_command(transcript, language=payload.language, db=db)
     intent = parsed.get("intent", "UNKNOWN")
-    items_to_process = parsed.get("items", [])
-    if not items_to_process and parsed.get("item"):
-        items_to_process = [{
+    raw_items = parsed.get("items", [])
+    
+    items_to_process = []
+    if raw_items:
+        for it in raw_items:
+            if isinstance(it, dict):
+                items_to_process.append(it)
+            elif isinstance(it, str) and it.strip():
+                items_to_process.append({
+                    "name": it.strip(),
+                    "quantity": parsed.get("quantity", 1),
+                    "unit": parsed.get("unit")
+                })
+    elif parsed.get("item"):
+        items_to_process.append({
             "name": parsed.get("item"),
             "quantity": parsed.get("quantity", 1),
             "unit": parsed.get("unit")
-        }]
+        })
 
     action_summary = ""
     mutated_items = []

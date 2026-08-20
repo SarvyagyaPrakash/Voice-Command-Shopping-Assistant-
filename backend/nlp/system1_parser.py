@@ -42,8 +42,7 @@ INTENT_PATTERNS = {
         r"\bbuy\b",
         r"\bget me\b",
         r"\bget\b",
-        r"\bput\b.*\bon the list\b",
-        r"\bput\b.*\bon my list\b",
+        r"\bput\b",
         r"\bpick up\b",
         r"\bneed to buy\b",
         r"\bpurchase\b"
@@ -72,8 +71,8 @@ INTENT_PATTERNS = {
 
 FILLER_WORDS = [
     "please", "can you", "could you", "would you", "on the list", "from the list",
-    "to the list", "on my list", "from my list", "to my list", "some", "the",
-    "for me", "hey assistant", "assistant", "for dinner", "for breakfast"
+    "to the list", "on my list", "from my list", "to my list", "in the list",
+    "some", "the", "for me", "hey assistant", "assistant", "for dinner", "for breakfast"
 ]
 
 
@@ -232,10 +231,12 @@ def parse_system1(transcript: str) -> Dict[str, Any]:
         
     confidence = max(0.0, min(1.0, round(confidence, 2)))
 
+    structured_items = [{"name": item, "quantity": qty, "unit": unit}] if item and not is_multi_item else []
+
     return {
         "intent": matched_intent,
         "item": item,
-        "items": [item] if item and not is_multi_item else [],
+        "items": structured_items,
         "quantity": qty,
         "unit": unit,
         "confidence": confidence,

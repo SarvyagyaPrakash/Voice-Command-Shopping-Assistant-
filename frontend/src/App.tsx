@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ShoppingCart, Sparkles, HelpCircle, CheckCircle2, AlertTriangle, Info, RefreshCw } from 'lucide-react';
-import { useSpeechRecognition, SupportedLanguage } from './hooks/useSpeechRecognition';
+import { useSpeechRecognition, type SupportedLanguage } from './hooks/useSpeechRecognition';
 import { useShoppingList } from './hooks/useShoppingList';
 import { VoiceButton } from './components/VoiceButton';
 import { ReasoningBadge } from './components/ReasoningBadge';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, Plus, Check } from 'lucide-react';
-import { api, ProductResult } from '../api/client';
+import { api, type ProductResult } from '../api/client';
 
 interface SearchBarProps {
   onAddItem: (name: string, quantity?: number, unit?: string, category?: string) => void;

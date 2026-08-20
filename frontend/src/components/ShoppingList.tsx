@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Plus, Minus, Trash2, CheckCircle2, ShoppingBag } from 'lucide-react';
-import { ShoppingItem } from '../api/client';
+import { ChevronDown, ChevronRight, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
+import type { ShoppingItem } from '../api/client';
 
 interface ShoppingListProps {
   items: ShoppingItem[];

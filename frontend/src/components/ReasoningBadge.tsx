@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, Brain, Info, Activity } from 'lucide-react';
-import { CommandParseResponse, CommandStats } from '../api/client';
+import type { CommandParseResponse, CommandStats } from '../api/client';
 
 interface ReasoningBadgeProps {
   lastCommand: CommandParseResponse | null;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mic, MicOff, Send, Globe, AlertCircle, Sparkles } from 'lucide-react';
-import { SupportedLanguage } from '../hooks/useSpeechRecognition';
+import type { SupportedLanguage } from '../hooks/useSpeechRecognition';
 
 interface VoiceButtonProps {
   isListening: boolean;

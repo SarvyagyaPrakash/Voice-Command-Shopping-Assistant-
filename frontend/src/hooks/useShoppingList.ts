@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { api, ShoppingItem, SuggestionItem, SuggestionsResponse, CommandParseResponse, CommandStats } from '../api/client';
+import { api } from '../api/client';
+import type { ShoppingItem, SuggestionItem, SuggestionsResponse, CommandParseResponse, CommandStats } from '../api/client';
 
 export interface Toast {
   id: string;

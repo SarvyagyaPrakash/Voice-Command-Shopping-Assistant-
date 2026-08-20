@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, Clock, Calendar, RefreshCw, Plus, X } from 'lucide-react';
-import { SuggestionItem, SuggestionsResponse } from '../api/client';
+import type { SuggestionItem, SuggestionsResponse } from '../api/client';
 
 interface SuggestionsPanelProps {
   suggestions: SuggestionsResponse;

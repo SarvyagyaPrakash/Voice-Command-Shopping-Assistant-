@@ -37,7 +37,7 @@ Voice / Text Input
 ### 1. Start Backend
 
 ```bash
-cd voice-shopping-assistant/backend
+cd backend
 
 # Create virtual environment and install dependencies
 python3 -m venv venv
@@ -53,7 +53,7 @@ uvicorn main:app --reload --port 8000
 ### 2. Start Frontend
 
 ```bash
-cd voice-shopping-assistant/frontend
+cd frontend
 
 # Install and run Vite dev server
 npm install
@@ -68,7 +68,7 @@ npm run dev
 Run the 20-phrase unit test suite:
 
 ```bash
-cd voice-shopping-assistant/backend
+cd backend
 pytest test_system1.py -v
 ```
 
