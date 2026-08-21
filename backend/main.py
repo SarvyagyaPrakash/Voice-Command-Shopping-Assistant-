@@ -1,5 +1,7 @@
 import json
 import os
+import re
+import difflib
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -18,7 +20,7 @@ from models import ShoppingItem, CommandLog
 from categorize import categorize_item
 from suggestions.pantry_decay import calculate_depletion_date, get_running_low_suggestions
 from suggestions.seasonal import get_seasonal_suggestions
-from suggestions.substitutes import get_substitute_suggestions
+from suggestions.substitutes import get_substitute_suggestions, get_item_substitutes
 from nlp.confidence import process_command
 
 # Load environment variables
@@ -160,6 +162,136 @@ def seed_demo_data():
     db.close()
 
 
+# --- Item Search & Matching Utilities ---
+
+def normalize_grocery_token(w: str) -> str:
+    """Normalizes pluralization, punctuation, and casing for grocery item tokens."""
+    w = re.sub(r"[^\w\s-]", "", w.lower().strip())
+    if not w:
+        return ""
+    # Plural to singular normalization
+    if w.endswith("ies") and len(w) > 4:
+        return w[:-3] + "y"
+    if w.endswith("oes") and len(w) > 4:
+        return w[:-2]
+    if w.endswith("es") and len(w) > 3 and not (w.endswith("less") or w.endswith("cheese")):
+        return w[:-2]
+    if w.endswith("s") and not w.endswith("ss") and len(w) > 2:
+        return w[:-1]
+    return w
+
+
+STT_GROCERY_ALIASES: Dict[str, List[str]] = {
+    "apply": ["apple", "apples", "apply"],
+    "applies": ["apples", "apple", "applies"],
+    "aple": ["apple", "apples"],
+    "serial": ["cereal", "serial"],
+    "cereal": ["cereal", "serial"],
+    "flower": ["flour", "flower"],
+    "flour": ["flour", "flower"],
+    "meet": ["meat", "meet"],
+    "meat": ["meat", "meet"],
+    "batter": ["butter", "batter"],
+    "better": ["butter", "better"],
+    "yougurt": ["yogurt"],
+    "yogart": ["yogurt"],
+}
+
+
+def is_clear_list_command(text: str) -> bool:
+    """Detects if a query is a request to clear or delete the entire list."""
+    lowered = text.lower().strip()
+    clear_phrases = [
+        "all", "everything", "whole list", "the whole list", "entire list",
+        "the list", "all items", "list", "cart", "complete list", "my list",
+        "whole shopping list", "shopping list", "all of it", "every item"
+    ]
+    return lowered in clear_phrases
+
+
+def find_matching_shopping_items(db: Session, target_query: str) -> List[ShoppingItem]:
+    """
+    Intelligent shopping item finder for REMOVE / mutation commands.
+    Features:
+    1. Exact & case-insensitive match
+    2. Substring matching in both directions (e.g. 'apple' in 'Organic Fuji Apples')
+    3. Plural / Singular stemming (e.g. 'apples' <-> 'apple', 'tomatoes' <-> 'tomato')
+    4. Speech-to-text soundalike / misrecognition mapping ('apply' -> 'apple' / 'apples')
+    5. Token intersection matching
+    6. Fuzzy string distance (difflib SequenceMatcher >= 0.65)
+    """
+    active_items = db.query(ShoppingItem).filter(ShoppingItem.status == "active").all()
+    if not active_items or not target_query:
+        return []
+
+    target_raw = target_query.lower().strip()
+    target_norm = normalize_grocery_token(target_raw)
+    target_words = [normalize_grocery_token(w) for w in target_raw.split() if w]
+    
+    # Expand candidate aliases
+    candidate_aliases = {target_raw, target_norm}
+    if target_raw in STT_GROCERY_ALIASES:
+        candidate_aliases.update(STT_GROCERY_ALIASES[target_raw])
+    for w in target_raw.split():
+        if w in STT_GROCERY_ALIASES:
+            candidate_aliases.update(STT_GROCERY_ALIASES[w])
+
+    matched_items = []
+    seen_ids = set()
+
+    # 1. Tier 1: Exact matches, Direct Substring, or Stemmed matching
+    for item in active_items:
+        item_raw = item.name.lower().strip()
+        item_norm = normalize_grocery_token(item_raw)
+        item_words = [normalize_grocery_token(w) for w in item_raw.split() if w]
+
+        is_match = False
+        for alias in candidate_aliases:
+            alias_norm = normalize_grocery_token(alias)
+            if alias == item_raw or alias_norm == item_norm:
+                is_match = True
+                break
+            if alias in item_raw or item_raw in alias:
+                is_match = True
+                break
+            if alias_norm and item_norm and (alias_norm in item_norm or item_norm in alias_norm):
+                is_match = True
+                break
+
+        # Check word token overlap (e.g. "honeycrisp" in "Honeycrisp Apples", "apple" in "Organic Apple")
+        if not is_match:
+            for tw in target_words:
+                if tw and any(tw == iw or tw in iw or iw in tw for iw in item_words if iw):
+                    is_match = True
+                    break
+
+        if is_match and item.id not in seen_ids:
+            matched_items.append(item)
+            seen_ids.add(item.id)
+
+    # 2. Tier 2: Fuzzy Similarity match if Tier 1 found nothing
+    if not matched_items:
+        for item in active_items:
+            item_raw = item.name.lower().strip()
+            item_norm = normalize_grocery_token(item_raw)
+            
+            best_ratio = 0.0
+            for alias in candidate_aliases:
+                r1 = difflib.SequenceMatcher(None, alias, item_raw).ratio()
+                r2 = difflib.SequenceMatcher(None, normalize_grocery_token(alias), item_norm).ratio()
+                best_ratio = max(best_ratio, r1, r2)
+
+            for iw in item_raw.split():
+                for alias in candidate_aliases:
+                    best_ratio = max(best_ratio, difflib.SequenceMatcher(None, alias, iw).ratio())
+
+            if best_ratio >= 0.65 and item.id not in seen_ids:
+                matched_items.append(item)
+                seen_ids.add(item.id)
+
+    return matched_items
+
+
 # --- API Routes ---
 
 @app.get("/")
@@ -182,7 +314,7 @@ def parse_and_execute_command(payload: CommandParseRequest, db: Session = Depend
     """
     Core Voice/Text Command Endpoint:
     1. Routes through System 1 / System 2 confidence gate.
-    2. Performs the corresponding list mutation (ADD or REMOVE) or prepares search parameters.
+    2. Performs the corresponding list mutation (ADD, REMOVE, or CLEAR) or prepares search parameters.
     3. Returns full execution feedback with ReasoningBadge details.
     """
     transcript = payload.transcript.strip()
@@ -202,19 +334,37 @@ def parse_and_execute_command(payload: CommandParseRequest, db: Session = Depend
                 items_to_process.append({
                     "name": it.strip(),
                     "quantity": parsed.get("quantity", 1),
-                    "unit": parsed.get("unit")
+                    "unit": parsed.get("unit"),
+                    "has_explicit_quantity": parsed.get("has_explicit_quantity", False)
                 })
     elif parsed.get("item"):
         items_to_process.append({
             "name": parsed.get("item"),
             "quantity": parsed.get("quantity", 1),
-            "unit": parsed.get("unit")
+            "unit": parsed.get("unit"),
+            "has_explicit_quantity": parsed.get("has_explicit_quantity", False)
         })
 
     action_summary = ""
     mutated_items = []
 
-    if intent == "ADD":
+    # 1. CLEAR Intent (Clear entire shopping list)
+    if intent in ["CLEAR", "CLEAR_ALL"]:
+        active_items = db.query(ShoppingItem).filter(ShoppingItem.status == "active").all()
+        removed_names = []
+        for item in active_items:
+            item.status = "removed"
+            removed_names.append(item.name)
+            mutated_items.append(_format_item_response(item))
+        db.commit()
+
+        if removed_names:
+            action_summary = f"Cleared all {len(removed_names)} items from your shopping list."
+        else:
+            action_summary = "Your shopping list is already empty."
+
+    # 2. ADD Intent
+    elif intent == "ADD":
         added_names = []
         for item_data in items_to_process:
             raw_name = item_data.get("name", "").strip()
@@ -257,23 +407,69 @@ def parse_and_execute_command(payload: CommandParseRequest, db: Session = Depend
 
         action_summary = f"Added {', '.join(added_names)} to your list." if added_names else "No items identified to add."
 
+    # 3. REMOVE Intent
     elif intent == "REMOVE":
-        removed_names = []
-        for item_data in items_to_process:
-            raw_name = item_data.get("name", "").strip()
-            if not raw_name:
-                continue
-            found = db.query(ShoppingItem).filter(
-                ShoppingItem.name.ilike(f"%{raw_name}%"),
-                ShoppingItem.status == "active"
-            ).all()
+        # Check if entire list clear was requested as a remove command (e.g. "remove all", "delete whole list")
+        is_clear_all_requested = False
+        if not items_to_process:
+            is_clear_all_requested = True
+        elif any(is_clear_list_command(it.get("name", "")) for it in items_to_process):
+            is_clear_all_requested = True
 
-            for item in found:
+        if is_clear_all_requested:
+            active_items = db.query(ShoppingItem).filter(ShoppingItem.status == "active").all()
+            removed_names = []
+            for item in active_items:
                 item.status = "removed"
                 removed_names.append(item.name)
+                mutated_items.append(_format_item_response(item))
             db.commit()
 
-        action_summary = f"Removed {', '.join(removed_names)} from your list." if removed_names else "Could not find matching item to remove."
+            if removed_names:
+                action_summary = f"Cleared all {len(removed_names)} items from your shopping list."
+            else:
+                action_summary = "Your shopping list is already empty."
+        else:
+            removed_names = []
+            for item_data in items_to_process:
+                raw_name = item_data.get("name", "").strip()
+                if not raw_name:
+                    continue
+                qty = item_data.get("quantity", 1)
+                has_explicit_qty = item_data.get("has_explicit_quantity", False)
+
+                matching = find_matching_shopping_items(db, raw_name)
+                for item in matching:
+                    if has_explicit_qty and qty < item.quantity:
+                        item.quantity -= qty
+                        removed_names.append(f"{qty}x {item.name}")
+                        mutated_items.append(_format_item_response(item))
+                    else:
+                        item.status = "removed"
+                        removed_names.append(item.name)
+                        mutated_items.append(_format_item_response(item))
+                db.commit()
+
+            action_summary = f"Removed {', '.join(removed_names)} from your list." if removed_names else "Could not find matching item to remove."
+
+    elif intent == "SUBSTITUTE":
+        target_name = parsed.get("item", "").strip() or (items_to_process[0]["name"] if items_to_process else "")
+        alts = get_item_substitutes(target_name)
+        if alts:
+            alt_str = ", ".join(f"{a['name'].title()} ({a.get('reason', 'Great substitute')})" for a in alts[:3])
+            action_summary = f"Substitutes for {target_name.title()}: {alt_str}."
+        else:
+            action_summary = f"No direct substitutes found for '{target_name}'. Try checking related items."
+
+    elif intent == "RECOMMEND":
+        running_low = get_running_low_suggestions(db)
+        seasonal = get_seasonal_suggestions(db)
+        recs = []
+        if running_low:
+            recs.append(f"Running low: {running_low[0]['item_name'].title()}")
+        if seasonal:
+            recs.append(f"In season & on sale: {', '.join(s['item_name'].title() for s in seasonal[:2])}")
+        action_summary = f"Recommendations — {' | '.join(recs)}." if recs else "All items are well stocked!"
 
     elif intent == "SEARCH":
         action_summary = f"Searching for '{parsed.get('item', transcript)}' in store catalog."
@@ -461,6 +657,22 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     item.status = "removed"
     db.commit()
     return {"success": True, "message": f"Removed '{item.name}'"}
+
+
+@app.post("/api/items/clear")
+@app.delete("/api/items")
+def clear_all_items(db: Session = Depends(get_db)):
+    """Clears all active items from the shopping list."""
+    active_items = db.query(ShoppingItem).filter(ShoppingItem.status == "active").all()
+    count = len(active_items)
+    for item in active_items:
+        item.status = "removed"
+    db.commit()
+    return {
+        "success": True,
+        "message": f"Cleared {count} items from shopping list",
+        "cleared_count": count
+    }
 
 
 @app.get("/api/suggestions")

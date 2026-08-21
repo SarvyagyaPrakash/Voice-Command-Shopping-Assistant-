@@ -195,6 +195,19 @@ export function useShoppingList() {
     [items, loadData, showToast]
   );
 
+  // Clear All Items
+  const clearAllItems = useCallback(async () => {
+    try {
+      setItems([]);
+      const res = await api.clearAllItems();
+      showToast(res.message || 'Cleared all items from shopping list', 'info');
+      await loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to clear list', 'error');
+      await loadData();
+    }
+  }, [loadData, showToast]);
+
   // Accept Suggestion
   const acceptSuggestion = useCallback(
     async (suggestion: SuggestionItem) => {
@@ -245,6 +258,7 @@ export function useShoppingList() {
     changeQuantity,
     changeCategory,
     removeItem,
+    clearAllItems,
     acceptSuggestion,
     dismissSuggestion,
     refreshData: loadData,

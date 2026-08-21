@@ -17,7 +17,7 @@ export interface ShoppingItem {
 export interface CommandParseResponse {
   success: boolean;
   transcript: string;
-  intent: 'ADD' | 'REMOVE' | 'SEARCH' | 'UNKNOWN';
+  intent: 'ADD' | 'REMOVE' | 'CLEAR' | 'SEARCH' | 'UNKNOWN';
   reasoning_path: 'instant' | 'deliberated';
   confidence: number;
   transcription_source?: 'web_speech' | 'whisper' | string;
@@ -166,6 +166,11 @@ export const api = {
   deleteItem: (id: number) =>
     request<{ success: boolean; message: string }>(`/api/items/${id}`, {
       method: 'DELETE',
+    }),
+
+  clearAllItems: () =>
+    request<{ success: boolean; message: string; cleared_count: number }>('/api/items/clear', {
+      method: 'POST',
     }),
 
   getSuggestions: () => request<SuggestionsResponse>('/api/suggestions'),

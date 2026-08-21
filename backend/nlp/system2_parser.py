@@ -14,7 +14,7 @@ SYSTEM_PROMPT = """You are a precise Natural Language Understanding (NLU) shoppi
 Parse the user's voice command transcript (which may be in English, Spanish, Hindi, or mixed language).
 Return ONLY a valid JSON object with NO markdown code blocks, NO backticks, and NO conversational filler, matching this exact schema:
 {
-  "intent": "ADD" | "REMOVE" | "SEARCH" | "UNKNOWN",
+  "intent": "ADD" | "REMOVE" | "CLEAR" | "SEARCH" | "UNKNOWN",
   "items": [
     {
       "name": "item name in English (e.g. milk, eggs, apples, coffee)",
@@ -32,6 +32,11 @@ Return ONLY a valid JSON object with NO markdown code blocks, NO backticks, and 
 
 Examples:
 - "add milk and 2 dozen eggs" -> {"intent":"ADD","items":[{"name":"milk","quantity":1,"unit":null},{"name":"eggs","quantity":2,"unit":"dozen"}],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"en"}
+- "remove apply" -> {"intent":"REMOVE","items":[{"name":"apple","quantity":1,"unit":null}],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"en"}
+- "clear whole list" -> {"intent":"CLEAR","items":[],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"en"}
+- "delete everything from list" -> {"intent":"CLEAR","items":[],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"en"}
+- "sab hatao" -> {"intent":"CLEAR","items":[],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"hi"}
+- "borrar toda la lista" -> {"intent":"CLEAR","items":[],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"es"}
 - "we are completely out of olive oil and coffee" -> {"intent":"ADD","items":[{"name":"olive oil","quantity":1,"unit":null},{"name":"coffee","quantity":1,"unit":null}],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"en"}
 - "find organic apples under 5 dollars" -> {"intent":"SEARCH","items":[{"name":"organic apples","quantity":1,"unit":null}],"brand":null,"price_filter":{"max_price":5.0,"min_price":null},"language_detected":"en"}
 - "doodh aur andey add karo" -> {"intent":"ADD","items":[{"name":"milk","quantity":1,"unit":null},{"name":"eggs","quantity":1,"unit":null}],"brand":null,"price_filter":{"max_price":null,"min_price":null},"language_detected":"hi"}
@@ -46,17 +51,41 @@ def _offline_fallback_system2(transcript: str, language: str) -> Dict[str, Any]:
     raw = transcript.strip()
     lowered = raw.lower()
     
+    # Check for CLEAR list intent
+    clear_keywords = [
+        "clear whole list", "clear the list", "clear list", "clear all", "clear everything",
+        "empty list", "empty the list", "empty cart", "delete all", "delete everything",
+        "remove all", "remove everything", "remove whole list", "wipe list", "erase all",
+        "sab hatao", "puri list saaf", "saaf karo", "khali karo", "sab delete", "pura hata do",
+        "borrar todo", "eliminar todo", "vaciar lista", "limpiar lista", "quitar todo"
+    ]
+    if any(k in lowered for k in clear_keywords):
+        return {
+            "intent": "CLEAR",
+            "items": [],
+            "item": "",
+            "quantity": 1,
+            "unit": None,
+            "brand": None,
+            "price_filter": {"max_price": None, "min_price": None},
+            "language_detected": language,
+            "confidence": 0.95,
+            "reasoning": "deliberated"
+        }
+
     # Multilingual intent detection
     intent = "ADD"
-    if any(w in lowered for w in ["remove", "delete", "hatao", "quitar", "eliminar", "don't need", "cancel"]):
+    if any(w in lowered for w in ["remove", "delete", "hatao", "quitar", "eliminar", "don't need", "cancel", "drop", "cut"]):
         intent = "REMOVE"
     elif any(w in lowered for w in ["find", "search", "dhoondo", "buscar", "where", "show"]):
         intent = "SEARCH"
     elif any(w in lowered for w in ["add", "need", "want", "buy", "lao", "jodo", "agregar", "comprar", "out of"]):
         intent = "ADD"
 
-    # Multilingual translation dictionary for common items
+    # Multilingual translation dictionary & STT soundalikes for common items
     translations = {
+        # Common STT phonetic mishearings
+        "apply": "apple", "applies": "apples", "aple": "apple",
         # Hindi
         "doodh": "milk", "dood": "milk", "andey": "eggs", "anda": "egg", "ande": "eggs",
         "seb": "apples", "kela": "bananas", "kele": "bananas", "pyaaz": "onions",
@@ -72,7 +101,7 @@ def _offline_fallback_system2(transcript: str, language: str) -> Dict[str, Any]:
     detected_lang = language
     for foreign_word in translations.keys():
         if foreign_word in lowered:
-            detected_lang = "hi" if foreign_word in ["doodh", "andey", "seb", "kela", "pyaaz", "tamatar", "aloo", "chawal", "chini", "makhan", "paneer", "chai", "tel"] else "es"
+            detected_lang = "hi" if foreign_word in ["doodh", "andey", "seb", "kela", "pyaaz", "tamatar", "aloo", "chawal", "chini", "makhan", "paneer", "chai", "tel"] else ("en" if foreign_word in ["apply", "applies", "aple"] else "es")
             break
 
     # Price extraction e.g. "under 5 dollars", "less than $10"

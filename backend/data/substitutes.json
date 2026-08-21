@@ -1,17 +1,32 @@
 {
   "milk": [
-    {"name": "oat milk", "reason": "Plant-based creamy alternative", "category": "dairy"},
-    {"name": "almond milk", "reason": "Low-calorie nutty alternative", "category": "dairy"},
-    {"name": "soy milk", "reason": "High-protein dairy alternative", "category": "dairy"}
+    {"name": "almond milk", "reason": "Low-calorie nutty plant-based alternative", "category": "dairy"},
+    {"name": "oat milk", "reason": "Plant-based creamy dairy-free alternative", "category": "dairy"},
+    {"name": "soy milk", "reason": "High-protein dairy-free choice", "category": "dairy"},
+    {"name": "lactose-free milk", "reason": "Gentle on digestion real dairy choice", "category": "dairy"}
+  ],
+  "regular milk": [
+    {"name": "almond milk", "reason": "Popular dairy-free nutty alternative", "category": "dairy"},
+    {"name": "oat milk", "reason": "Creamy plant-based substitute", "category": "dairy"}
   ],
   "whole milk": [
+    {"name": "almond milk", "reason": "Low-calorie plant-based alternative", "category": "dairy"},
     {"name": "oat milk", "reason": "Creamy plant-based substitute", "category": "dairy"},
     {"name": "2% reduced fat milk", "reason": "Lighter dairy choice", "category": "dairy"}
   ],
+  "bread": [
+    {"name": "gluten-free bread", "reason": "Celiac-friendly gluten-free choice", "category": "bakery"},
+    {"name": "sourdough bread", "reason": "Fermented gut-friendly artisan bread", "category": "bakery"},
+    {"name": "whole wheat bread", "reason": "High-fiber whole grain choice", "category": "bakery"}
+  ],
+  "white bread": [
+    {"name": "whole wheat bread", "reason": "Nutrient-rich high fiber grain", "category": "bakery"},
+    {"name": "gluten-free bread", "reason": "Gluten-free baking alternative", "category": "bakery"}
+  ],
   "butter": [
-    {"name": "olive oil", "reason": "Healthy cooking fat substitute", "category": "pantry"},
+    {"name": "olive oil", "reason": "Healthy monounsaturated cooking fat", "category": "pantry"},
     {"name": "ghee", "reason": "High smoke point clarified butter", "category": "dairy"},
-    {"name": "plant butter", "reason": "Vegan alternative for baking", "category": "dairy"}
+    {"name": "plant butter", "reason": "Vegan alternative for baking & toast", "category": "dairy"}
   ],
   "eggs": [
     {"name": "flaxseed meal", "reason": "Vegan egg substitute for baking", "category": "pantry"},
@@ -19,8 +34,8 @@
     {"name": "applesauce", "reason": "Moisture replacer in muffins & cakes", "category": "produce"}
   ],
   "sugar": [
-    {"name": "honey", "reason": "Natural unrefined sweetener", "category": "pantry"},
-    {"name": "maple syrup", "reason": "Flavorful liquid sweetener", "category": "pantry"},
+    {"name": "honey", "reason": "Natural unrefined antioxidant sweetener", "category": "pantry"},
+    {"name": "maple syrup", "reason": "Flavorful pure mineral-rich liquid sweetener", "category": "pantry"},
     {"name": "stevia", "reason": "Zero-calorie plant sweetener", "category": "pantry"}
   ],
   "white rice": [
@@ -30,29 +45,35 @@
   ],
   "rice": [
     {"name": "quinoa", "reason": "Complete protein grain substitute", "category": "pantry"},
-    {"name": "couscous", "reason": "Quick cooking wheat grain", "category": "pantry"}
+    {"name": "brown rice", "reason": "Whole grain alternative", "category": "pantry"},
+    {"name": "cauliflower rice", "reason": "Low-carb veggie swap", "category": "produce"}
   ],
   "pasta": [
     {"name": "chickpea pasta", "reason": "High protein & gluten-free", "category": "pantry"},
     {"name": "zucchini noodles", "reason": "Fresh low-carb vegetable substitute", "category": "produce"},
-    {"name": "whole wheat spaghetti", "reason": "Higher fiber alternative", "category": "pantry"}
+    {"name": "whole wheat spaghetti", "reason": "Higher fiber complex carb alternative", "category": "pantry"}
   ],
   "coffee": [
     {"name": "matcha green tea", "reason": "Clean, jitter-free sustained energy", "category": "beverages"},
+    {"name": "decaf coffee", "reason": "Same rich aroma with zero caffeine", "category": "beverages"},
     {"name": "chicory root brew", "reason": "Caffeine-free rich earthy flavor", "category": "beverages"}
   ],
   "chicken": [
-    {"name": "firm tofu", "reason": "Versatile plant-based protein", "category": "meat"},
+    {"name": "firm tofu", "reason": "Versatile high-protein plant substitute", "category": "meat"},
     {"name": "turkey breast", "reason": "Lean poultry alternative", "category": "meat"},
     {"name": "portobello mushrooms", "reason": "Savory meaty texture for stir-fries", "category": "produce"}
   ],
   "beef": [
     {"name": "ground turkey", "reason": "Leaner protein substitute", "category": "meat"},
     {"name": "lentils", "reason": "Hearty fiber-rich plant substitute", "category": "pantry"},
-    {"name": "plant-based beyond patty", "reason": "Texture-matching alternative", "category": "meat"}
+    {"name": "plant-based beyond patty", "reason": "Texture-matching vegan alternative", "category": "meat"}
   ],
   "cheese": [
     {"name": "nutritional yeast", "reason": "Cheesy nutty seasoning for toppings", "category": "pantry"},
     {"name": "vegan cashew cheese", "reason": "Dairy-free artisanal spread", "category": "dairy"}
+  ],
+  "peanut butter": [
+    {"name": "almond butter", "reason": "Nutrient-dense vitamin E rich spread", "category": "pantry"},
+    {"name": "sunflower seed butter", "reason": "Nut-free school-safe spread", "category": "pantry"}
   ]
 }

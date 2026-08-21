@@ -51,8 +51,8 @@ def calculate_depletion_date(item_name: str, added_at: datetime | None = None) -
 
 def get_running_low_suggestions(db: Session) -> List[Dict[str, Any]]:
     """
-    Finds items added previously that are near depletion (within 1 day of depletion or past depletion).
-    If an item was recently added/replenished, it is fresh and will NOT be suggested as running low.
+    Finds items added previously that are near depletion (within 1 day of depletion or past depletion)
+    or items previously purchased that are due for replenishment.
     """
     now = datetime.utcnow()
     threshold = now + timedelta(days=1)
@@ -60,28 +60,28 @@ def get_running_low_suggestions(db: Session) -> List[Dict[str, Any]]:
     # Query items ordered by newest added_at first
     items = db.query(ShoppingItem).filter(
         ShoppingItem.estimated_depletion.isnot(None),
-        ShoppingItem.status.in_(["active", "purchased"])
+        ShoppingItem.status.in_(["active", "purchased", "removed"])
     ).order_by(ShoppingItem.added_at.desc()).all()
     
     suggestions = []
     seen_names = set()
     fresh_names = set()
 
-    # Step 1: Mark all items that are currently fresh (not near depletion)
+    # Step 1: Mark all active items that are currently fresh (not near depletion)
     for item in items:
-        name_clean = item.name.lower().strip()
-        if item.estimated_depletion and item.estimated_depletion > threshold:
-            fresh_names.add(name_clean)
-            # Also add root tokens e.g. 'bananas' -> 'banana', 'organic bananas' -> 'bananas'
-            for word in name_clean.split():
-                if len(word) >= 4:
-                    fresh_names.add(word)
+        if item.status == "active":
+            name_clean = item.name.lower().strip()
+            if item.estimated_depletion and item.estimated_depletion > threshold:
+                fresh_names.add(name_clean)
+                for word in name_clean.split():
+                    if len(word) >= 4:
+                        fresh_names.add(word)
 
-    # Step 2: Surface running-low alerts only for items that are genuinely depleted and not restocked
+    # Step 2: Surface running-low alerts for items genuinely depleted
     for item in items:
         name_clean = item.name.lower().strip()
         
-        # If this item or its root product was recently restocked, skip it
+        # If this item or root product is already active & fresh on the list, skip it
         if name_clean in fresh_names or any(word in fresh_names for word in name_clean.split() if len(word) >= 4):
             continue
 
@@ -91,7 +91,7 @@ def get_running_low_suggestions(db: Session) -> List[Dict[str, Any]]:
             seen_names.add(name_clean)
             
             days_ago = max(1, (now - (item.added_at or now)).days)
-            msg = f"You added {item.name} {days_ago} days ago — running low?"
+            msg = f"It looks like you're running low on {item.name} (added {days_ago} days ago)."
             
             total_duration = max(1, ((item.estimated_depletion or now) - (item.added_at or now)).total_seconds())
             elapsed = (now - (item.added_at or now)).total_seconds()

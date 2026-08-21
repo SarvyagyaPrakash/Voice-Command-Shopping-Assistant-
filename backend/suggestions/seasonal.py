@@ -40,8 +40,8 @@ def get_seasonal_suggestions(db: Session, active_items_set: Set[str] | None = No
                 "type": "seasonal",
                 "item_name": name,
                 "category": item.get("category", "produce"),
-                "reason": item.get("reason", f"{name.capitalize()} are in peak season this month!"),
+                "reason": item.get("reason", f"{name.capitalize()} are in peak season and on seasonal sale this month!"),
                 "month": current_month
             })
             
-    return suggestions[:3]
+    return suggestions[:4]

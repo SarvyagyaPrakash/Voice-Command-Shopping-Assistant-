@@ -33,8 +33,29 @@ UNITS = [
     "jar", "jars", "cup", "cups", "piece", "pieces", "bar", "bars"
 ]
 
+CLEAR_PATTERNS = [
+    r"\bclear\s+(?:the\s+)?(?:whole\s+|entire\s+)?(?:shopping\s+)?list\b",
+    r"\bclear\s+all(?:\s+items)?\b",
+    r"\bclear\s+everything\b",
+    r"\bclear\s+list\b",
+    r"\bempty\s+(?:the\s+)?(?:shopping\s+)?(?:list|cart)\b",
+    r"\bempty\s+list\b",
+    r"\bempty\s+cart\b",
+    r"\bdelete\s+all(?:\s+items)?\b",
+    r"\bdelete\s+everything\b",
+    r"\bdelete\s+(?:the\s+)?(?:whole\s+|entire\s+)?(?:shopping\s+)?list\b",
+    r"\bremove\s+all(?:\s+items)?\b",
+    r"\bremove\s+everything\b",
+    r"\bremove\s+(?:the\s+)?(?:whole\s+|entire\s+)?(?:shopping\s+)?list\b",
+    r"\bwipe\s+(?:the\s+)?(?:whole\s+|entire\s+)?(?:shopping\s+)?list\b",
+    r"\berase\s+all(?:\s+items)?\b",
+    r"\berase\s+(?:the\s+)?(?:whole\s+|entire\s+)?(?:shopping\s+)?list\b",
+    r"\breset\s+(?:the\s+)?(?:shopping\s+)?list\b",
+]
+
 # Intent regex patterns
 INTENT_PATTERNS = {
+    "CLEAR": CLEAR_PATTERNS,
     "ADD": [
         r"\badd\b",
         r"\bi need\b",
@@ -51,12 +72,33 @@ INTENT_PATTERNS = {
         r"\bremove\b",
         r"\bdelete\b",
         r"\btake off\b",
+        r"\btake out\b",
         r"\bdon't need\b",
         r"\bdont need\b",
         r"\bcancel\b",
         r"\bdrop\b",
         r"\bclear\b",
-        r"\berase\b"
+        r"\berase\b",
+        r"\bget rid of\b",
+        r"\beliminate\b",
+        r"\bdiscard\b"
+    ],
+    "SUBSTITUTE": [
+        r"\bsubstitutes?\s+(?:for|to|of)\b",
+        r"\balternatives?\s+(?:for|to|of)\b",
+        r"\bwhat\s+(?:can\s+i|to)\s+replace\b",
+        r"\breplace\b",
+        r"\bswap\s+for\b"
+    ],
+    "RECOMMEND": [
+        r"\bwhat\s+(?:am\s+i|are\s+we)\s+running\s+low\s+on\b",
+        r"\bwhat(?:'s|\s+is)\s+in\s+season\b",
+        r"\bseasonal\s+recommendations?\b",
+        r"\bproduct\s+recommendations?\b",
+        r"\bwhat\s+should\s+i\s+buy\b",
+        r"\bany\s+recommendations\b",
+        r"\brecommend\b",
+        r"\bsuggestions?\b"
     ],
     "SEARCH": [
         r"\bsearch for\b",
@@ -71,25 +113,29 @@ INTENT_PATTERNS = {
 
 FILLER_WORDS = [
     "please", "can you", "could you", "would you", "on the list", "from the list",
-    "to the list", "on my list", "from my list", "to my list", "in the list",
+    "to the list", "on my list", "from my list", "off my list", "off the list",
+    "to my list", "in the list", "out of the list", "out of my list",
     "some", "the", "for me", "hey assistant", "assistant", "for dinner", "for breakfast"
 ]
 
 
-def extract_quantity_and_unit(text: str) -> Tuple[int, Optional[str], str]:
+def extract_quantity_and_unit(text: str) -> Tuple[int, Optional[str], str, bool]:
     """
-    Extracts numerical or word quantity and unit, returning (quantity, unit, cleaned_text).
+    Extracts numerical or word quantity and unit, returning (quantity, unit, cleaned_text, has_explicit_quantity).
     """
     clean = text
     qty = 1
     unit = None
+    has_explicit = False
     
     # 1. Check for compound word numbers like 'half dozen'
     if "half dozen" in clean or "half-dozen" in clean:
         qty = 6
+        has_explicit = True
         clean = re.sub(r"\bhalf[- ]dozen\b", "", clean)
     elif "dozen" in clean:
         qty = 12
+        has_explicit = True
         clean = re.sub(r"\bdozen\b", "", clean)
 
     # 2. Check for numeric digits + unit e.g. "2 bottles", "3 lbs"
@@ -98,8 +144,9 @@ def extract_quantity_and_unit(text: str) -> Tuple[int, Optional[str], str]:
     if num_unit_match:
         qty = int(num_unit_match.group(1))
         unit = num_unit_match.group(2).lower()
+        has_explicit = True
         clean = clean[:num_unit_match.start()] + clean[num_unit_match.end():]
-        return qty, unit, clean.strip()
+        return qty, unit, clean.strip(), has_explicit
         
     # 3. Check for word quantity + unit e.g. "two bottles", "a loaf"
     word_nums_pattern = "|".join(WORD_TO_NUM.keys())
@@ -108,35 +155,39 @@ def extract_quantity_and_unit(text: str) -> Tuple[int, Optional[str], str]:
         w = word_unit_match.group(1).lower()
         qty = WORD_TO_NUM.get(w, 1)
         unit = word_unit_match.group(2).lower()
+        has_explicit = True
         clean = clean[:word_unit_match.start()] + clean[word_unit_match.end():]
-        return qty, unit, clean.strip()
+        return qty, unit, clean.strip(), has_explicit
 
     # 4. Check for standalone unit e.g. "bottle of milk", "a carton of eggs"
     unit_of_match = re.search(rf"\b(?:a|an|one)?\s*({units_pattern})\s+of\b", clean, re.IGNORECASE)
     if unit_of_match:
         unit = unit_of_match.group(1).lower()
+        has_explicit = True
         clean = clean[:unit_of_match.start()] + clean[unit_of_match.end():]
-        return qty, unit, clean.strip()
+        return qty, unit, clean.strip(), has_explicit
 
     # 5. Check for standalone digits e.g. "2 apples"
     num_match = re.search(r"\b(\d+)\b", clean)
     if num_match:
         qty = int(num_match.group(1))
+        has_explicit = True
         clean = clean[:num_match.start()] + clean[num_match.end():]
-        return qty, unit, clean.strip()
+        return qty, unit, clean.strip(), has_explicit
 
     # 6. Check for standalone word quantity e.g. "five apples", "two avocados"
     for word, val in WORD_TO_NUM.items():
-        # Avoid treating 'a' or 'an' as strict quantity unless followed by a noun
+        # Avoid treating 'a' or 'an' as strict explicit quantity unless followed by a noun
         if word in ["a", "an"]:
             continue
         word_match = re.search(rf"\b{word}\b", clean, re.IGNORECASE)
         if word_match:
             qty = val
+            has_explicit = True
             clean = clean[:word_match.start()] + clean[word_match.end():]
             break
 
-    return qty, unit, clean.strip()
+    return qty, unit, clean.strip(), has_explicit
 
 
 def parse_system1(transcript: str) -> Dict[str, Any]:
@@ -197,16 +248,36 @@ def parse_system1(transcript: str) -> Dict[str, Any]:
         if matched_intent != "UNKNOWN":
             break
 
+    # If intent is CLEAR (e.g. 'clear whole list', 'empty list', 'clear all')
+    if matched_intent == "CLEAR":
+        return {
+            "intent": "CLEAR",
+            "item": "",
+            "items": [],
+            "quantity": 1,
+            "unit": None,
+            "confidence": 0.98,
+            "reasoning": "instant",
+            "entities": {
+                "item": "",
+                "quantity": 1,
+                "unit": None,
+                "is_clear_all": True,
+                "is_multi_item": False,
+                "has_explicit_quantity": False
+            }
+        }
+
     # 2. Extract Quantity & Unit
-    qty, unit, clean_text = extract_quantity_and_unit(clean_text)
+    qty, unit, clean_text, has_explicit_quantity = extract_quantity_and_unit(clean_text)
     qty_score = 0.20
 
     # 3. Clean fillers and stopwords
     for filler in FILLER_WORDS:
         clean_text = re.sub(rf"\b{re.escape(filler)}\b", " ", clean_text, flags=re.IGNORECASE)
     
-    # Remove extra prepositions like 'of', 'for', 'from', 'to', 'in' at boundaries
-    clean_text = re.sub(r"\b(of|for|from|to|in|on|with)\b", " ", clean_text, flags=re.IGNORECASE)
+    # Remove extra prepositions like 'of', 'for', 'from', 'to', 'in', 'off' at boundaries
+    clean_text = re.sub(r"\b(of|for|from|to|in|on|with|off)\b", " ", clean_text, flags=re.IGNORECASE)
     
     # Clean whitespace and non-alphanumeric punctuation
     item = re.sub(r"[^\w\s-]", " ", clean_text).strip()
@@ -231,7 +302,12 @@ def parse_system1(transcript: str) -> Dict[str, Any]:
         
     confidence = max(0.0, min(1.0, round(confidence, 2)))
 
-    structured_items = [{"name": item, "quantity": qty, "unit": unit}] if item and not is_multi_item else []
+    structured_items = [{
+        "name": item,
+        "quantity": qty,
+        "unit": unit,
+        "has_explicit_quantity": has_explicit_quantity
+    }] if item and not is_multi_item else []
 
     return {
         "intent": matched_intent,
@@ -241,10 +317,12 @@ def parse_system1(transcript: str) -> Dict[str, Any]:
         "unit": unit,
         "confidence": confidence,
         "reasoning": "instant",
+        "has_explicit_quantity": has_explicit_quantity,
         "entities": {
             "item": item,
             "quantity": qty,
             "unit": unit,
+            "has_explicit_quantity": has_explicit_quantity,
             "is_multi_item": is_multi_item
         }
     }

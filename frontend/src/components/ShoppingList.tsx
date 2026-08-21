@@ -8,6 +8,7 @@ interface ShoppingListProps {
   onQuantityChange: (id: number, delta: number) => void;
   onCategoryChange: (id: number, newCategory: string) => void;
   onRemoveItem: (id: number) => void;
+  onClearAll?: () => void;
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -40,6 +41,7 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
   onQuantityChange,
   onCategoryChange,
   onRemoveItem,
+  onClearAll,
 }) => {
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
@@ -99,7 +101,17 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
           <ShoppingBag className="w-3.5 h-3.5 text-palette-primary" />
           <span>Shopping List ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
         </h3>
-        <span className="text-[11px] font-medium text-palette-deep/50">Tracked with Pantry Decay</span>
+        {onClearAll && items.length > 0 && (
+          <button
+            type="button"
+            onClick={onClearAll}
+            className="text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 border border-rose-200/60"
+            title="Clear entire shopping list"
+          >
+            <Trash2 className="w-3 h-3" />
+            <span>Clear list</span>
+          </button>
+        )}
       </div>
 
       {categoryKeys.map((cat) => {

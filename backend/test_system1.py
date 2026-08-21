@@ -31,17 +31,29 @@ SAMPLE_PHRASES = [
     ("take off bananas", "REMOVE", "bananas", 1, None, True),
     # 14. REMOVE with "don't need"
     ("don't need butter", "REMOVE", "butter", 1, None, True),
-    # 15. Simple SEARCH
+    # 15. REMOVE with 'remove apply' (STT variation for apple)
+    ("remove apply", "REMOVE", "apply", 1, None, True),
+    # 16. CLEAR whole list
+    ("clear whole list", "CLEAR", None, 1, None, True),
+    # 17. CLEAR all
+    ("clear all", "CLEAR", None, 1, None, True),
+    # 18. CLEAR the list
+    ("clear the list", "CLEAR", None, 1, None, True),
+    # 19. Empty list
+    ("empty list", "CLEAR", None, 1, None, True),
+    # 20. Delete all items
+    ("delete all items", "CLEAR", None, 1, None, True),
+    # 21. Simple SEARCH
     ("find apples", "SEARCH", "apples", 1, None, True),
-    # 16. SEARCH with 'search for'
+    # 22. SEARCH with 'search for'
     ("search for cereal", "SEARCH", "cereal", 1, None, True),
-    # 17. SEARCH with 'show me'
+    # 23. SEARCH with 'show me'
     ("show me pasta", "SEARCH", "pasta", 1, None, True),
-    # 18. Multi-item sentence (Should have LOWER confidence < 0.75 to escalate to System 2)
+    # 24. Multi-item sentence (Should have LOWER confidence < 0.75 to escalate to System 2)
     ("add milk and eggs", "ADD", None, 1, None, False),
-    # 19. Conversational ambiguous sentence (Should escalate to System 2)
+    # 25. Conversational ambiguous sentence (Should escalate to System 2)
     ("we ran out of coffee for breakfast", "UNKNOWN", None, 1, None, False),
-    # 20. Another multi-item complex list
+    # 26. Another multi-item complex list
     ("buy bananas, apples, and Greek yogurt", "ADD", None, 1, None, False)
 ]
 

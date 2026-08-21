@@ -26,6 +26,7 @@ export const App: React.FC = () => {
     changeQuantity,
     changeCategory,
     removeItem,
+    clearAllItems,
     acceptSuggestion,
     dismissSuggestion,
     refreshData,
@@ -233,6 +234,7 @@ export const App: React.FC = () => {
           onQuantityChange={changeQuantity}
           onCategoryChange={changeCategory}
           onRemoveItem={removeItem}
+          onClearAll={clearAllItems}
         />
       </main>
 
