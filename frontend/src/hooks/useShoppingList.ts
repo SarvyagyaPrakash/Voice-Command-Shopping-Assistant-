@@ -19,6 +19,7 @@ export function useShoppingList() {
   const [dismissedSuggestionIds, setDismissedSuggestionIds] = useState<Set<string>>(new Set());
   const [lastCommand, setLastCommand] = useState<CommandParseResponse | null>(null);
   const [stats, setStats] = useState<CommandStats | null>(null);
+  const [isBackendReady, setIsBackendReady] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isParsing, setIsParsing] = useState<boolean>(false);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -31,9 +32,11 @@ export function useShoppingList() {
     }, 4500);
   }, []);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (isSilentRetry = false) => {
     try {
-      setIsLoading(true);
+      if (!isSilentRetry) {
+        setIsLoading(true);
+      }
       const [itemsData, suggestionsData, statsData] = await Promise.all([
         api.getItems('active'),
         api.getSuggestions(),
@@ -42,8 +45,12 @@ export function useShoppingList() {
       setItems(itemsData);
       setSuggestions(suggestionsData);
       if (statsData) setStats(statsData);
+      setIsBackendReady(true);
     } catch (err: any) {
-      showToast(err.message || 'Failed to load shopping list', 'error');
+      setIsBackendReady(false);
+      if (!isSilentRetry) {
+        showToast(err.message || 'Connecting to backend...', 'error');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -52,6 +59,17 @@ export function useShoppingList() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Periodic retry when backend is not ready / reloading
+  useEffect(() => {
+    if (isBackendReady) return;
+
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isBackendReady, loadData]);
 
   // Execute Voice or Text Command
   const executeCommand = useCallback(
@@ -216,6 +234,7 @@ export function useShoppingList() {
     },
     lastCommand,
     stats,
+    isBackendReady,
     isLoading,
     isParsing,
     toast,

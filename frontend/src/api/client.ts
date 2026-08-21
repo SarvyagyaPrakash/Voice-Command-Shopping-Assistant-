@@ -181,4 +181,6 @@ export const api = {
   },
 
   getStats: () => request<CommandStats>('/api/commands/stats'),
+
+  checkHealth: () => request<{ status?: string }>('/'),
 };

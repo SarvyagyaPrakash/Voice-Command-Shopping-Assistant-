@@ -7,6 +7,7 @@ import { ReasoningBadge } from './components/ReasoningBadge';
 import { SuggestionsPanel } from './components/SuggestionsPanel';
 import { ShoppingList } from './components/ShoppingList';
 import { SearchBar } from './components/SearchBar';
+import { BackendStatusNote } from './components/BackendStatusNote';
 
 export const App: React.FC = () => {
   const {
@@ -14,6 +15,7 @@ export const App: React.FC = () => {
     suggestions,
     lastCommand,
     stats,
+    isBackendReady,
     isLoading,
     isParsing,
     toast,
@@ -147,7 +149,7 @@ export const App: React.FC = () => {
           <div className="flex items-center gap-1 bg-white/70 backdrop-blur-sm p-1 rounded-2xl border border-palette-light shadow-xs">
             <button
               type="button"
-              onClick={refreshData}
+              onClick={() => refreshData()}
               title="Refresh list"
               className="text-palette-deep/70 hover:text-palette-primary p-2 rounded-xl hover:bg-palette-light/60 transition-all"
             >
@@ -233,6 +235,9 @@ export const App: React.FC = () => {
           onRemoveItem={removeItem}
         />
       </main>
+
+      {/* Floating Side Note: Backend Loading Status */}
+      <BackendStatusNote isBackendReady={isBackendReady} onRetry={() => refreshData()} />
     </div>
   );
 };
